@@ -1,0 +1,414 @@
+数据库表结构设计
+
+主要数据类型:
+    user, chat, channel, message, dialog, media, file
+
+其他类型:
+    contact, bot, game, phone, langpack, payments, document, photo, sticker, 及其之间的关系表
+
+文件类型间的关系:
+    message->media 
+        所有文字和文件都是通过message传递的.
+
+    FileLocation->upload.File
+        upload.File->bytes
+
+    一般传文件都走这四个inputMediaDocument, inputMediaUploadedDocument, inputMediaPhoto, inputMediaUploadedPhoto 
+    media->uploadedDocument
+        先上传再发送文件
+        uploadedDocument->inputFile
+    media->document
+        发送文件
+        document->photo
+            photo->photoSize->FileLocation
+    media->uploadedPhoto->inputFile
+        先上传再发送图片, 此时还没生成photo_id, 发送成功后返回photo_id
+    media->photo->photo_id
+        发送图片
+    media->game
+    media->webpage
+    media->contact
+    media->geo
+    media->geolive
+    media->venue  foursquare.com 地点
+    media->invoice
+    
+    UserProfilePhoto->photo->photo_id+FileLocation*2
+    sticker->document
+
+    InputFileLocation分3种:
+        inputFileLocation只是给图片和头像用的
+        inputDocumentFileLocation是视频和其他文件用的, 里面的id=document_id
+        inputEncryptedFileLocation是加密文件用的
+    
+    InputFile是客户端上传后的临时上传id, 要等服务器保存后才返回最终的photo->FileLocation或document.    
+    
+    upload.File是最终的二进制数据.
+
+    document->thumb+DocumentAttribute[]
+        document实际是对sticker,视频和声音的封装, 外面加了个缩略图而已
+        DocumentAttribute->ImageSize
+        DocumentAttribute->Animated
+        DocumentAttribute->Sticker->sticker_id
+        DocumentAttribute->Video
+        DocumentAttribute->Audio
+        DocumentAttribute->Filename
+        DocumentAttribute->HasStickers
+
+编码:
+    username必须是utf8, first_name, title, about是utf8mb4
+
+document和photo是media下的两个重要的大类, 需要单独建表;
+还有tmp_file表;
+
+文件上传分saveFilePart(<10M小文件)和saveBigFilePart(大文件). 对大文件, 不用等传完, 直接流式上传到s3;
+对小文件(比如图片), 一边用流式上传到s3, 一边本地保存一份副本, 用来生成图片副本, 再上传到s3; 
+
+photo表:
+    id
+    photo_id int64 不依赖主键
+    has_stickers 是否属于贴纸
+    access_hash
+    add_time
+
+photo_size表:
+    图片副本mipmap
+    photo_id
+    type string abcsmxy
+    w
+    h
+    size
+    dc_id 文件位置: 数据中心
+    volume_id int64 文件位置: 卷,表,目录, 暂时=photo_id
+    local_id 文件位置: 内部id, volume表id, 暂时=photo_size.id
+    secret int64 校验码
+    file_path s3地址
+
+document表:
+    id
+    access_hash
+    dc_id
+    mime_type 文件类型
+    size 文件大小
+    thumb_id 缩略图photo_id
+    version
+    attributes Vector<DocumentAttribute>编码
+    file_path s3文件路径
+    add_time
+
+raw_message表:
+    原始消息表, 只包含消息本身的属性
+    到时按peer_id分表, 因为搜索总是属于某个peer.
+    message_blob  消息包二进制格式, mtproto.TLMessage.Encode()
+    message_text  消息文本内容, 加全文索引用于搜索, 分表后使用elastic-db索引.
+    type  消息类型, 用于搜索, 参考[1]
+    from_id  发送者ID 搜索用
+    peer_type  接收者类型: user/group/channel
+    peer_id  接收者ID
+    media_unread  发语音的时候message.media_unread=true, 点开语音就会发messages.readMessageContents消息, 然后标记为true.
+    views  阅览数(channel用)
+    edit_date 编辑时间
+    add_time
+
+user_msgbox表:
+    用户信箱表, 通过引用原始消息确定一种虚拟的从属关系;
+    到时按user_id分表.
+    user_id  消息仅属于该用户
+    msg_id  针对user_id生成的信箱消息ID 
+    raw_id  指向原始message表ID
+    from_id  发送者ID, 用from_id=user_id表示发件箱, 否则为收件箱
+    peer_type  接收者类型: 2user/3chat/4channel
+    peer_id  接收者ID
+    reply_to_msg_id 回复的msgbox_id
+    deleted  已删除
+    *random_id  int64 保存客户端生成的random_id, 用于updateMessageID. 比如从群里转发一条消息给B, 那么需要客户端先生成一个临时random_id来唯一表示这条消息, 发出后服务器会用updateMessageID将临时id转换成发送者的信箱id; 也就说在生成真正的信箱id之前用from_peer+random_id唯一确定一条消息; random_id只属于发出者设备.
+    memtioned  这条消息是否@了我
+    add_time 发送接收时间
+
+chat表:
+    群表, chat+channel, 共用一个表
+    * 邀请别人进超级群的时候会选择给他转发50条历史消息, 意味着需要给被邀请者建立50条信箱消息, 即user_msgbox和user_dialog.top_message, 因为每个人有自己的消息ID.
+    id  int32 使用主键当channel_id即可
+    democracy  [channel]是否民主 1所有成员都可以邀请新成员 0只有管理员能邀请新成员
+    creator_id  创建者ID
+    pinned_msg_id  [channel]置顶消息ID
+    available_min_id  [channel]保留的最早的消息ID
+    about  群简介
+    title  群标题
+    type 1普通群chat 2超级群megagroup 3频道broadcast
+    admins_enabled [chat]所有人都是管理员
+    migrated_from_chat_id  [channel]从普通群升上来的ID
+    migrated_from_max_id  [channel]从普通群升上来最后一条消息ID
+    migrated_to: [chat]普通群已经升级到超级群的ID
+    username  [channel]公共群组用户名为空""表示私人群组, 否则为公共群组. 公开群组可以被搜到. 群用户名必须以字母开头后面可以是字母和数字不能有其他符号和中文, 最大32个字符.
+    invite_code  私有邀请链接中的邀请码 https://t.me/joinchat/IV8LgkZQ1d1reMFqT8FV4Q
+    signatures  [channel]管理员是否可以设置签名
+    *pts 存到redis
+    photo_id 群logo
+    deactivated 普通群升级到超级群后设为1
+    verified 是否认证
+    version 版本
+    add_time  创建时间
+
+chat_invite表:
+    群私有邀请码表
+    普通群创建者可生成邀请链接; 超级群创建者和管理员可生成自己的链接; 生成后不再删除
+    chat_id
+    user_id
+    code  私有邀请链接中的邀请码 https://t.me/joinchat/IV8LgkZQ1d1reMFqT8FV4Q
+
+channel_msgbox表:
+    用来存储群组历史消息
+    chat_id
+    msg_id  属于本群的独立消息ID
+    raw_id  指向message表
+    from_id  发送者
+    reply_to_msg_id 回复的消息ID
+    mention_id @某用户的ID
+    add_time
+
+channel_pts表:
+    TL_updateNewChannelMessage属于new_message, 其他update属于other_updates
+    chat_id
+    pts 从2开始; redis key = channel_pts:<channel_id>
+    update_blob  BLOB
+    add_time
+
+chat_paticipant表:
+    群组成员表, 创建者也属于管理员, 被踢和被封的不能删除;
+    chat_id
+    user_id
+    type  成员类型 0普通成员 1创建者 2管理员
+    bot 是机器人
+    inviter_id 自己加进来是自己的id, 点邀请链接进来是群主的id
+    rights_mask  管理员权限/黑名单权限 根据成员类型作不同解释 参考[3]
+    banned 被封
+    until_date  解封时间
+    left  0正常 1已离开
+    add_time  加入时间
+    update_time 离开时间/其他时间
+
+channel_admin_log表: 
+    群组管理员和成员的服务消息日志表
+    chat_id
+    action  二进制 ChannelAdminLogEventAction
+    action_type  事件类型 参考ChannelAdminLogEventsFilter[4]
+    add_time  发生时间
+
+user_contact表:
+    用户联系人表
+    user_id  我ID
+    peer_id  对方ID
+    mutual  双向联系人
+    blocked  已屏蔽
+    deleted  已删除, 主动删除后貌似无法看到添加联系人按钮了
+    client_id  客户端电话本里的序号
+    my_link  我是否认识对方
+    foreign_link  对方是否认识我
+    add_time
+    update_time
+
+user表:
+    user_id  用户ID字段: 考虑到有很多官方特殊ID, 需要自己维护redis计数器, 不依赖主键. 生成的时候跳过系统用户[5] (唯一索引)
+    access_hash  用来校验
+    username  用户名 (唯一索引) a-z, 0-9和下划线, 5<=长度<=32
+    first_name 官方长度可以超过500
+    last_name
+    phone  手机号 (唯一索引)
+    photo_id 用户头像, 历史头像另外存到别的地方
+    account_days_ttl  多少天后自动删除账号
+    restricted  是否受限; 抱歉，您无法执行此操作。
+    restriction_reason  受限原因
+    bot  是不是机器人
+    bot_nochats  机器人能否被添加到群组 0表示可以被添加到群组
+    bot_chat_history  机器人能否访问历史消息, 如果本来是false但是后来升为管理员就变true了.
+    bot_info_version  int 机器人版本号
+    bot_inline_placeholder  在群组里内连查询时候空白处的提示语, 比如@gambot Choose a game...
+    bot_inline_geo  内联机器人能否访问您的地理位置, 例如 @foursquare
+    verified  是否为官方认证用户, 名字后有个蓝白对勾
+    deleted  删除的用户
+    add_time  注册时间
+
+user_dialog表:
+    user_id
+    peer_type 
+    peer_id
+    pinned 是否置顶
+    top_message 最后一条消息的ID
+    read_inbox_max_id (服务器已知)我收到并读过的最大消息ID
+    read_outbox_max_id 我发出去并且被读过的最大消息ID
+    unread_count 未读条数, 受readHistory影响
+    unread_mentions_count  未读被@消息数, 受readMessageContents和readMentions影响
+    draft_message DraftMessage结构
+    add_time
+    update_time 最新消息时间
+
+user_peer_notify_setting表:
+    user_id
+    peer_type
+    peer_id
+    show_previews  通知是否带消息内容, 默认true
+    silent 更新静默广播设置, silent=true, 表示频道管理员发通知的时候不带声音, 默认false
+    mute_until: 静默期限
+    sound 声音, 默认default
+    update_time 更新时间
+
+user_privacy表:
+    用户隐私表, 设置-隐私, 包括大3项: 在线状态, 打电话, 群组邀请
+    例子:
+        rules: [
+            TLRPC.TL_privacyValueAllowUsers#4d5bbe0c {
+                users: [
+                    545059679
+                ],
+            }, TLRPC.TL_privacyValueDisallowUsers#c7f49b7 {
+                users: [
+                    602418770
+                ],
+            }, TLRPC.TL_privacyValueAllowContacts#fffe1bac {
+                users: [],
+            }
+        ]
+    user_id
+    status_timestamp 在线状态 Vector<PrivacyRule>
+    chat_invite 群组邀请 Vector<PrivacyRule>
+    phone_call 打电话 Vector<PrivacyRule>
+
+user_password表:
+    两步验证码表.
+
+authorization表:
+    设备表
+    auth_key_id  (唯一索引)
+    auth_key
+    user_id  当前属于哪个用户
+    api_id  236477
+    app_name  "Entgram"
+    app_version  "4.6.0"
+    country "Maryland, United States"
+    device_model  "HUAWEIBKL-AL20"
+    hash  -3582435152488168207 LONG
+    ip  "149.28.146.70"
+    platform  "Android"
+    region  ""
+    system_version  "SDK 26"
+    date_active  1533199361  更新时间
+    date_created  1533199361  添加时间
+
+raw_update表:
+    只存原始update数据
+    id
+    data
+
+user_pts表:
+    pts中存储的是少数几个消息相关的核心update, 一致性要求最高, 所有设备遵循一样的pts, 所以不需要按auth_key来分.
+    user_id
+    pts
+    raw_id 引用, 有些时候避免存多份, 数据存到另一个表
+    update_blob 单独的update可以不存引用id
+    add_time
+
+auth_qts表:
+    qts是一对一设备加密聊天用的, 按auth_key来分.
+    auth_key_id
+    qts
+    update_blob
+    add_time
+
+user_seq表:
+    seq表存储的是其他所有类型的update, 官方是按auth_key分的, 不过那样的话一条update会生成很多副本, 并且没必要, 还是按user_id分.
+    严格来说还是按auth_key分的, 因为updateMessageID这个消息只发给设备, 可以加一个auth_id字段区分.
+    getdifference主要是按date分, seq用于精确控制分页界限, 用sql表示如下:
+        select * from user_seq where user_id={user_id} and add_time>={date} and seq!={seq} order by id desc limit {limit}
+    user_id
+    auth_key_id 某些update只发给设备, 0表示所有设备可用
+    seq
+    raw_id 引用, 有些时候避免存多份, 数据存到另一个表
+    update_blob 单独的update可以不存引用id
+    add_time
+
+user_bot_state表:
+    用户与机器人对话状态表
+    user_id
+    bot_id
+    state 状态值
+    last_message blob 用户上一步操作的消息
+
+参考:
+[1]消息搜索分类:
+    inputMessagesFilterPhotos#9609a51c = MessagesFilter;
+    inputMessagesFilterVideo#9fc00e65 = MessagesFilter;
+    inputMessagesFilterPhotoVideo#56e9f0e4 = MessagesFilter;  图片或视频
+    inputMessagesFilterDocument#9eddf188 = MessagesFilter;
+    inputMessagesFilterUrl#7ef0dd87 = MessagesFilter;
+    inputMessagesFilterGif#ffc86587 = MessagesFilter;
+    inputMessagesFilterVoice#50f5c392 = MessagesFilter;
+    inputMessagesFilterMusic#3751b49e = MessagesFilter;
+    inputMessagesFilterChatPhotos#3a20ecb8 = MessagesFilter;
+    inputMessagesFilterPhoneCalls#80c99768 flags:# missed:flags.0?true = MessagesFilter;
+    inputMessagesFilterRoundVoice#7a7c17a4 = MessagesFilter;
+    inputMessagesFilterRoundVideo#b549da53 = MessagesFilter;
+    inputMessagesFilterMyMentions#c1f8e69a = MessagesFilter;
+    inputMessagesFilterGeo#e7026d0d = MessagesFilter;
+    inputMessagesFilterContacts#e062db83 = MessagesFilter;
+
+[2]群组成员搜索分类:
+    channelParticipantsRecent#de3f3c79 = ChannelParticipantsFilter;
+    channelParticipantsAdmins#b4608969 = ChannelParticipantsFilter;
+    channelParticipantsKicked#a3b54985 q:string = ChannelParticipantsFilter;
+    channelParticipantsBots#b0d1865b = ChannelParticipantsFilter;
+    channelParticipantsBanned#1427a5e1 q:string = ChannelParticipantsFilter;
+    channelParticipantsSearch#656ac4b q:string = ChannelParticipantsFilter;
+
+[3]群组成员权限分类, 用整数位保存:
+被封成员权限, true表示禁用, false表示启用
+当8个权限都被禁的时候, 转换成十六进制是0xff, 十进制是255
+所有权限都被禁的时候, kicked变为true. 对方收到400 CHANNEL_PRIVATE
+TLRPC.TL_channelBannedRights#58cf4249 {
+    embed_links: false,  bit#0 显示链接预览
+    flags: 0,
+    send_games: false,  bit#1 能否发游戏
+    send_gifs: false,  bit#2 能否发gif
+    send_inline: false,  bit#3 能否发内联
+    send_media: false,  bit#4 能否发文件
+    send_messages: false,  bit#5 能否发消息
+    send_stickers: false,  bit#6 能否发sticker
+    until_date: 0,
+    view_messages: false,  bit#7 能否查看消息
+}
+管理员权限, true表示启用, false表示禁用
+当9个权限都被禁时候, 也就是值为0的时候, 表示撤销管理员, 成员类型变成普通成员
+TLRPC.TL_channelAdminRights#5d7ceba5 {
+    add_admins: true,  bit#0 能否添加新管理员
+    ban_users: true,  bit#1 能否封禁用户
+    change_info: true,  bit#2 能否修改群组信息
+    delete_messages: false,  bit#3 能否删除消息
+    edit_messages: false,  bit#4 能否编辑消息
+    flags: 0,
+    invite_link: true,  bit#5 添加用户
+    invite_users: true,  bit#6 添加用户
+    pin_messages: true,  bit#7 能否置顶消息
+    post_messages: false,  bit#8 频道管理员能否发布广播
+}
+
+[4]群组日志事件类型:
+TLRPC.TL_channelAdminLogEventsFilter#ea107ae4 {
+    ban: false,  封号
+    delete: true,
+    demote: true,
+    edit: true,
+    flags: 0,
+    info: true,
+    invite: true,
+    join: true,
+    kick: false,  踢(没见用到)
+    leave: true,
+    pinned: true,
+    promote: true,
+    settings: true,
+    unban: false,  解封
+    unkick: false,  解踢
+}
+
+[5]预埋的官方账号:
+return id / 1000 == 777 || id == 333000 || return id / 1000 == 777 || id == 333000 || id == 4240000 || id == 4240000 || id == 4244000 || id == 4245000 || id == 4246000 || id == 410000 || id == 420000 || id == 431000 || id == 431415000 || id == 434000 || id == 4243000 || id == 439000 || id == 449000 || id == 450000 || id == 452000 || id == 454000 || id == 4254000 || id == 455000 || id == 460000 || id == 470000 || id == 479000 || id == 796000 || id == 482000 || id == 490000 || id == 496000 || id == 497000 || id == 498000 || id == 4298000

@@ -1,0 +1,107 @@
+注销活动会话
+
+服务器强制让某台设备退出
+
+A, 点设置-隐私和安全-活动会话, 注销某个会话
+
+A 获取所有当前设备信息
+09-04 10:37:37.006 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getAuthorizations#e320c158 {
+    }
+09-04 10:37:37.534 D/tmessages: <<<<<<<< 收到响应(TL_account_getAuthorizations):
+    TLRPC.TL_account_authorizations#1250abde {
+        authorizations: [
+            TLRPC.TL_authorization#7bf2e6f6 {
+                api_id: 2834,
+                app_name: "Telegram macOS",
+                app_version: "3.8.2",
+                country: "Manitoba, Canada",
+                date_active: 1536028115,
+                date_created: 1536028113,
+                device_model: "iMac18,3",
+                flags: 2,
+                hash: -8227176779683260653 LONG,
+                ip: "172.96.225.179",
+                platform: "macOS",
+                region: "",
+                system_version: "10.13.6",
+            }, TLRPC.TL_authorization#7bf2e6f6 {
+                api_id: 236477,
+                app_name: "Entgram",
+                app_version: "1.0.4",
+                country: "Manitoba, Canada",
+                date_active: 1536005119,
+                date_created: 1535764287,
+                device_model: "LGENexus 5",
+                flags: 1,
+                hash: 0 LONG,
+                ip: "172.96.225.179",
+                platform: "Android",
+                region: "",
+                system_version: "SDK 23",
+            }
+        ],
+    }
+
+A 请求注销一个会话
+09-04 10:32:08.790 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_resetAuthorization#df77f3bc {
+        hash: -7109998206533288043 LONG,
+    }
+09-04 10:32:09.432 D/tmessages: <<<<<<<< 收到响应(TL_account_resetAuthorization):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+服务器给B发了一个updatesTooLong, 然后强制给所有后续的RPC返回, 401 AUTH_KEY_UNREGISTERED
+实际上服务器在收到A的请求后, 解除了B的auth_key和user_id的绑定关系. 所以后面B发的消息都找不到用户ID, 就都收到了401.
+09-04 10:32:14.867 D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updatesTooLong#e317af7e {
+        chat_id: 0,
+        chats: [],
+        date: 0,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }
+09-04 10:32:14.868 E/tmessages: need get diff TL_updatesTooLong
+09-04 10:32:14.871 D/tmessages: MiPushClient Registration Token: OMbTuuMtOADQpKFZ00Knb7moaM6y4UDWYBVmW7w1odlsSqLlb0GvB2YKvJpCGw/P
+09-04 10:32:14.874 E/tmessages: start getDifference with date = 1536028292 pts = 1499 qts = 0
+09-04 10:32:14.876 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_registerDevice#637ea878 {
+        token: "OMbTuuMtOADQpKFZ00Knb7moaM6y4UDWYBVmW7w1odlsSqLlb0GvB2YKvJpCGw/P",
+        token_type: 2,
+    }
+09-04 10:32:14.877 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_updates_getDifference#25939651 {
+        date: 1536028292,
+        flags: 1,
+        pts: 1499,
+        pts_total_limit: 5000,
+        qts: 0,
+    }
+09-04 10:32:15.688 D/tmessages: switch to state 5
+09-04 10:32:15.851 E/tmessages: <<<<<<<< 收到错误(TL_updates_getDifference): 401 AUTH_KEY_UNREGISTERED
+09-04 10:32:15.853 D/tmessages: <<<<<<<< 收到响应(TL_updates_getDifference):
+    null
+09-04 10:32:15.856 E/tmessages: <<<<<<<< 收到错误(TL_account_registerDevice): 401 AUTH_KEY_UNREGISTERED
+09-04 10:32:15.857 D/tmessages: <<<<<<<< 收到响应(TL_account_registerDevice):
+    null
+09-04 10:32:15.905 E/tmessages: create new database

@@ -1,0 +1,76 @@
+切换新成员历史记录可见性
+
+2018-11-10 11:26:48.630 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_channels_togglePreHistoryHidden#eabbb94c {
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: 7431103281638726705 LONG,
+            channel_id: 1215329641,
+        },
+        enabled: false, // true是隐藏, false是可见
+    }
+2018-11-10 11:26:49.067 D/tmessages: <<<<<<<< 收到响应(TL_channels_togglePreHistoryHidden):
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [
+            TLRPC.TL_channel#450b7115 {
+                access_hash: 7431103281638726705 LONG,
+                address: null,
+                admin: false,
+                admin_rights: null,
+                admins_enabled: false,
+                banned_rights: null,
+                broadcast: false,
+                checked_in: false,
+                creator: true,
+                date: 1541819098,
+                deactivated: false,
+                democracy: true,
+                explicit_content: false,
+                flags: 9473,
+                geo: null,
+                id: 1215329641,
+                kicked: false,
+                left: false,
+                megagroup: true,
+                migrated_to: null,
+                min: false,
+                moderator: false,
+                participants_count: 0,
+                photo: TLRPC.TL_chatPhotoEmpty#37c1011c {
+                    photo_big: null,
+                    photo_small: null,
+                },
+                restricted: false,
+                restriction_reason: null,
+                signatures: false,
+                title: "yy",
+                until_date: 0,
+                username: null,
+                venue: null,
+                verified: false,
+                version: 0,
+            }
+        ],
+        date: 1541820409,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }

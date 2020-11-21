@@ -1,0 +1,78 @@
+切换邀请新成员
+
+2018-11-09 10:37:56.199 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_channels_toggleInvites#49609307 {
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: 7047338609684275191 LONG,
+            channel_id: 1387537533,
+        },
+        enabled: false,
+    }
+2018-11-09 10:37:56.581 D/tmessages: <<<<<<<< 收到响应(TL_channels_toggleInvites):
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [
+            TLRPC.TL_channel#450b7115 {
+                access_hash: 7047338609684275191 LONG,
+                address: null,
+                admin: false,
+                admin_rights: null,
+                admins_enabled: false,
+                banned_rights: null,
+                broadcast: false,
+                checked_in: false,
+                creator: true,
+                date: 1541644262,
+                deactivated: false,
+                democracy: false,  // 这里变了
+                explicit_content: false,
+                flags: 8449,
+                geo: null,
+                id: 1387537533,
+                kicked: false,
+                left: false,
+                megagroup: true,
+                migrated_to: null,
+                min: false,
+                moderator: false,
+                participants_count: 0,
+                photo: TLRPC.TL_chatPhotoEmpty#37c1011c {
+                    photo_big: null,
+                    photo_small: null,
+                },
+                restricted: false,
+                restriction_reason: null,
+                signatures: false,
+                title: "ff",
+                until_date: 0,
+                username: null,
+                venue: null,
+                verified: false,
+                version: 0,
+            }
+        ],
+        date: 1541731074,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }
+
+不给其他人发

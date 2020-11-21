@@ -1,0 +1,217 @@
+08-22 10:42:28.147 2753-2862/im.wink.app.messenger D/tmessages: >>>>>>>>>>>>>>>>>> 发送请求:
+    TLRPC.TL_contacts_importContacts#2c800be5 {
+        contacts: [
+            TLRPC.TL_inputPhoneContact#f392b7f4 {
+                client_id: 0 LONG,
+                first_name: "Volunteer Support",
+                last_name: "",
+                phone: "+42400",
+            }
+        ],
+    }
+08-22 10:42:28.177 2753-2753/im.wink.app.messenger E/tmessages: delay post notification 2 with args count = 1
+08-22 10:42:28.177 2753-2753/im.wink.app.messenger E/tmessages: delay post notification 61 with args count = 1
+08-22 10:42:28.290 2753-2753/im.wink.app.messenger E/tmessages: proximity changed to 5.0
+08-22 10:42:28.365 2753-2753/im.wink.app.messenger E/tmessages: proximity changed to 5.0
+08-22 10:42:28.564 2753-2861/im.wink.app.messenger D/tmessages: <<<<<<<<<<<<<<<<<< 收到响应(org.telegram.tgnet.TLRPC$TL_contacts_importedContacts@306b1d0):
+    TLRPC.TL_contacts_importedContacts#77d01c3b {
+        imported: [
+            TLRPC.TL_importedContact#d0028438 {
+                client_id: 0 LONG,
+                user_id: 424000,
+            }
+        ],
+        popular_invites: [],
+        retry_contacts: [],
+        users: [
+            TLRPC.TL_user#2e13f4c3 {
+                access_hash: 734540415457927427 LONG,
+                bot: false,
+                bot_chat_history: false,
+                bot_info_version: 0,
+                bot_inline_geo: false,
+                bot_inline_placeholder: null,
+                bot_nochats: false,
+                contact: true,
+                deleted: false,
+                explicit_content: false,
+                first_name: "Volunteer Support",
+                flags: 2163,
+                id: 424000,
+                inactive: false,
+                lang_code: null,
+                last_name: null,
+                min: false,
+                mutual_contact: false,
+                phone: "42400",
+                photo: TLRPC.TL_userProfilePhoto#d559d8c8 {
+                    photo_big: TLRPC.TL_fileLocation#53d69076 {
+                        dc_id: 1,
+                        iv: null,
+                        key: null,
+                        local_id: 24893,
+                        secret: -6585829689083280232 LONG,
+                        volume_id: 806123210 LONG,
+                    },
+                    photo_id: 1821066589743473 LONG,
+                    photo_small: TLRPC.TL_fileLocation#53d69076 {
+                        dc_id: 1,
+                        iv: null,
+                        key: null,
+                        local_id: 24891,
+                        secret: 8988573547253731028 LONG,
+                        volume_id: 806123210 LONG,
+                    },
+                },
+                restricted: false,
+                restriction_reason: null,
+                self: false,
+                status: TLRPC.TL_userStatusRecently#e26f42f1 {
+                    expires: 0,
+                },
+                username: null,
+                verified: false,
+            }
+        ],
+    }
+08-22 10:42:28.565 2753-2861/im.wink.app.messenger D/tmessages: java received org.telegram.tgnet.TLRPC$TL_updates@b3a9de7
+08-22 10:42:28.573 2753-2862/im.wink.app.messenger D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [],
+        date: 1534905747,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 3,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [
+            TLRPC.TL_updateContactLink#9d2e67c5 {
+                action: null,
+                available_min_id: 0,
+                blocked: false,
+                channel_id: 0,
+                chat: null,
+                chat_id: 0,
+                chat_instance: 0 LONG,
+                data: null,
+                date: 0,
+                dc_options: [],
+                difference: null,
+                draft: null,
+                enabled: false,
+                entities: [],
+                first_name: null,
+                flags: 0,
+                foreign_link: TLRPC.TL_contactLinkUnknown#5f4f9247 {
+                },
+                game_short_name: null,
+                geo: null,
+                inbox_date: 0,
+                inviter_id: 0,
+                is_admin: false,
+                key: null,
+                last_name: null,
+                masks: false,
+                max_date: 0,
+                max_id: 0,
+                media: null,
+                messages: [],
+                my_link: TLRPC.TL_contactLinkContact#d502c2d0 {
+                },
+                notify_settings: null,
+                offset: null,
+                participant: null,
+                participants: null,
+                phone: null,
+                phone_call: null,
+                photo: null,
+                pinned: false,
+                popup: false,
+                previous: false,
+                pts: 0,
+                pts_count: 0,
+                qts: 0,
+                query: null,
+                query_id: 0 LONG,
+                random_id: 0 LONG,
+                rules: [],
+                status: null,
+                stickerset: null,
+                type: null,
+                user_id: 424000,
+                username: null,
+                version: 0,
+                views: 0,
+                webpage: null,
+            }
+        ],
+        user_id: 0,
+        users: [
+            TLRPC.TL_user#2e13f4c3 {
+                access_hash: 734540415457927427 LONG,
+                bot: false,
+                bot_chat_history: false,
+                bot_info_version: 0,
+                bot_inline_geo: false,
+                bot_inline_placeholder: null,
+                bot_nochats: false,
+                contact: true,
+                deleted: false,
+                explicit_content: false,
+                first_name: "Volunteer Support",
+                flags: 2163,
+                id: 424000,
+                inactive: false,
+                lang_code: null,
+                last_name: null,
+                min: false,
+                mutual_contact: false,
+                phone: "42400",
+                photo: TLRPC.TL_userProfilePhoto#d559d8c8 {
+                    photo_big: TLRPC.TL_fileLocation#53d69076 {
+                        dc_id: 1,
+                        iv: null,
+                        key: null,
+                        local_id: 24893,
+                        secret: -6585829689083280232 LONG,
+                        volume_id: 806123210 LONG,
+                    },
+                    photo_id: 1821066589743473 LONG,
+                    photo_small: TLRPC.TL_fileLocation#53d69076 {
+                        dc_id: 1,
+                        iv: null,
+                        key: null,
+                        local_id: 24891,
+                        secret: 8988573547253731028 LONG,
+                        volume_id: 806123210 LONG,
+                    },
+                },
+                restricted: false,
+                restriction_reason: null,
+                self: false,
+                status: TLRPC.TL_userStatusRecently#e26f42f1 {
+                    expires: 0,
+                },
+                username: null,
+                verified: false,
+            }
+        ],
+        via_bot_id: 0,
+    }
+08-22 10:42:28.574 2753-2862/im.wink.app.messenger D/tmessages: process update org.telegram.tgnet.TLRPC$TL_updateContactLink@d367032
+08-22 10:42:28.574 2753-2862/im.wink.app.messenger E/tmessages: process update - contacts add = 1 delete = 0
+08-22 10:42:28.585 2753-2863/im.wink.app.messenger E/tmessages: start read contacts from phone
+08-22 10:42:28.644 2753-2863/im.wink.app.messenger E/tmessages: contacts not changed!

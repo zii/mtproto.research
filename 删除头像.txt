@@ -1,0 +1,151 @@
+删除头像
+
+删除非当前头像
+08-22 10:55:49.846 2753-2862/im.wink.app.messenger D/tmessages: >>>>>>>>>>>>>>>>>> 发送请求:
+    TLRPC.TL_photos_deletePhotos#87cf7f2f {
+        id: [
+            TLRPC.TL_inputPhoto#fb95c6c4 {
+                access_hash: -7581144627421657067 LONG,
+                id: 2404653379469027243 LONG,
+            }
+        ],
+    }
+返回删除的ID
+08-22 10:55:50.136 2753-2861/im.wink.app.messenger D/tmessages: <<<<<<<<<<<<<<<<<< 收到响应(org.telegram.tgnet.TLRPC$Vector@68ce93a):
+    TLRPC.Vector {
+        objects: [
+            2404653379469027243 LONG
+        ],
+    }
+
+删除当前头像
+08-22 11:00:17.502 2753-2862/im.wink.app.messenger D/tmessages: >>>>>>>>>>>>>>>>>> 发送请求:
+    TLRPC.TL_photos_updateProfilePhoto#f0bb5152 {
+        id: TLRPC.TL_inputPhotoEmpty#1cd7bf0d {
+            access_hash: 0 LONG,
+            id: 0 LONG,
+        },
+    }
+返回的是新照片
+08-22 11:00:17.726 2753-2861/im.wink.app.messenger D/tmessages: <<<<<<<<<<<<<<<<<< 收到响应(org.telegram.tgnet.TLRPC$TL_userProfilePhoto@c17ccd):
+    TLRPC.TL_userProfilePhoto#d559d8c8 {
+        photo_big: TLRPC.TL_fileLocation#53d69076 {
+            dc_id: 5,
+            iv: null,
+            key: null,
+            local_id: 196991,
+            secret: -3819696246405455177 LONG,
+            volume_id: 852902453 LONG,
+        },
+        photo_id: 2404653379469027244 LONG,
+        photo_small: TLRPC.TL_fileLocation#53d69076 {
+            dc_id: 5,
+            iv: null,
+            key: null,
+            local_id: 196989,
+            secret: 1801550717321927011 LONG,
+            volume_id: 852902453 LONG,
+        },
+    }
+08-22 11:00:17.727 2753-2861/im.wink.app.messenger D/tmessages: java received org.telegram.tgnet.TLRPC$TL_updateShort@2cbfbce
+08-22 11:00:17.735 2753-2862/im.wink.app.messenger D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updateShort#78d4dec1 {
+        chat_id: 0,
+        chats: [],
+        date: 1534906816,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: TLRPC.TL_updateUserPhoto#95313b0c {
+            action: null,
+            available_min_id: 0,
+            blocked: false,
+            channel_id: 0,
+            chat: null,
+            chat_id: 0,
+            chat_instance: 0 LONG,
+            data: null,
+            date: 1534906817,
+            dc_options: [],
+            difference: null,
+            draft: null,
+            enabled: false,
+            entities: [],
+            first_name: null,
+            flags: 0,
+            foreign_link: null,
+            game_short_name: null,
+            geo: null,
+            inbox_date: 0,
+            inviter_id: 0,
+            is_admin: false,
+            key: null,
+            last_name: null,
+            masks: false,
+            max_date: 0,
+            max_id: 0,
+            media: null,
+            messages: [],
+            my_link: null,
+            notify_settings: null,
+            offset: null,
+            participant: null,
+            participants: null,
+            phone: null,
+            phone_call: null,
+            photo: TLRPC.TL_userProfilePhoto#d559d8c8 {
+                photo_big: TLRPC.TL_fileLocation#53d69076 {
+                    dc_id: 5,
+                    iv: null,
+                    key: null,
+                    local_id: 196991,
+                    secret: -3819696246405455177 LONG,
+                    volume_id: 852902453 LONG,
+                },
+                photo_id: 2404653379469027244 LONG,
+                photo_small: TLRPC.TL_fileLocation#53d69076 {
+                    dc_id: 5,
+                    iv: null,
+                    key: null,
+                    local_id: 196989,
+                    secret: 1801550717321927011 LONG,
+                    volume_id: 852902453 LONG,
+                },
+            },
+            pinned: false,
+            popup: false,
+            previous: true,
+            pts: 0,
+            pts_count: 0,
+            qts: 0,
+            query: null,
+            query_id: 0 LONG,
+            random_id: 0 LONG,
+            rules: [],
+            status: null,
+            stickerset: null,
+            type: null,
+            user_id: 559876994,
+            username: null,
+            version: 0,
+            views: 0,
+            webpage: null,
+        },
+        updates: [],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }

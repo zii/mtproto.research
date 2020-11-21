@@ -1,0 +1,11 @@
+重置所有通知
+
+A发送重置请求
+09-29 16:39:14.523 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_resetNotifySettings#db7e1747 {
+    }
+09-29 16:39:15.014 D/tmessages: <<<<<<<< 收到响应(TL_account_resetNotifySettings):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+服务器并没有给其他设备发update

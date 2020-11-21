@@ -1,0 +1,107 @@
+readMentions
+长按mentionsdown会触发这个消息.
+实现参考readMessageContents.
+
+10-16 09:53:42.806 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_messages_readMentions#f0189d3 {
+        peer: TLRPC.TL_inputPeerChat#179be863 {
+            access_hash: 0 LONG,
+            channel_id: 0,
+            chat_id: 268771455,
+            user_id: 0,
+        },
+    }
+10-16 09:53:43.382 D/tmessages: <<<<<<<< 收到响应(TL_messages_readMentions):
+    TLRPC.TL_messages_affectedHistory#b45c69d1 {
+        offset: 0,
+        pts: 292,
+        pts_count: 1,
+    }
+10-16 09:53:43.384 D/tmessages: java received org.telegram.tgnet.TLRPC$TL_updates@2619933
+10-16 09:53:43.396 D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [],
+        date: 1539654829,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [
+            TLRPC.TL_updateReadMessagesContents#68c13933 {
+                action: null,
+                available_min_id: 0,
+                blocked: false,
+                channel_id: 0,
+                chat: null,
+                chat_id: 0,
+                chat_instance: 0 LONG,
+                data: null,
+                date: 0,
+                dc_options: [],
+                difference: null,
+                draft: null,
+                enabled: false,
+                entities: [],
+                first_name: null,
+                flags: 0,
+                foreign_link: null,
+                game_short_name: null,
+                geo: null,
+                inbox_date: 0,
+                inviter_id: 0,
+                is_admin: false,
+                key: null,
+                last_name: null,
+                masks: false,
+                max_date: 0,
+                max_id: 0,
+                media: null,
+                messages: [
+                    124
+                ],
+                my_link: null,
+                notify_settings: null,
+                offset: null,
+                participant: null,
+                participants: null,
+                phone: null,
+                phone_call: null,
+                photo: null,
+                pinned: false,
+                popup: false,
+                previous: false,
+                pts: 292,
+                pts_count: 1,
+                qts: 0,
+                query: null,
+                query_id: 0 LONG,
+                random_id: 0 LONG,
+                rules: [],
+                status: null,
+                stickerset: null,
+                type: null,
+                user_id: 0,
+                username: null,
+                version: 0,
+                views: 0,
+                webpage: null,
+            }
+        ],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }

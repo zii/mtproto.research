@@ -1,0 +1,15 @@
+编辑简介
+
+2018-11-09 09:36:35.173 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_channels_editAbout#13e27f1e {
+        about: "哈哈哈哈",
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: 7047338609684275191 LONG,
+            channel_id: 1387537533,
+        },
+    }
+2018-11-09 09:36:35.547 D/tmessages: <<<<<<<< 收到响应(TL_channels_editAbout):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+不给其他人发

@@ -1,0 +1,89 @@
+user#2e13f4c3 flags:# self:flags.10?true contact:flags.11?true mutual_contact:flags.12?true deleted:flags.13?true bot:flags.14?true bot_chat_history:flags.15?true bot_nochats:flags.16?true verified:flags.17?true restricted:flags.18?true min:flags.20?true bot_inline_geo:flags.21?true id:int access_hash:flags.0?long first_name:flags.1?string last_name:flags.2?string username:flags.3?string phone:flags.4?string photo:flags.5?UserProfilePhoto status:flags.6?UserStatus bot_info_version:flags.14?int restriction_reason:flags.18?string bot_inline_placeholder:flags.19?string lang_code:flags.22?string = User;
+
+userFull#f220f3f flags:# blocked:flags.0?true phone_calls_available:flags.4?true phone_calls_private:flags.5?true user:User about:flags.1?string link:contacts.Link profile_photo:flags.2?Photo notify_settings:PeerNotifySettings bot_info:flags.3?BotInfo common_chats_count:int = UserFull;
+
+-- 用户表涉及的代码
+auth/auth_util.go:48
+contact/contact_logic.go:252
+user/user_util.go
+user/user.go
+user/profile_photo_data.go
+account/days_ttl.go
+
+-- 原用户表
+CREATE TABLE `users` -> user (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `access_hash` bigint(20) NOT NULL,
+  `first_name` varchar(255) NOT NULL DEFAULT '',
+  `last_name` varchar(255) NOT NULL DEFAULT '',
+  `username` varchar(255) NOT NULL,
+  `phone` varchar(32) NOT NULL,
+  `country_code` varchar(3) NOT NULL,
+  - `bio` varchar(255) NOT NULL,
+  `about` varchar(512) NOT NULL DEFAULT '',
+  - `state` int(11) NOT NULL DEFAULT '0',
+  `is_bot` -> bot tinyint(1) NOT NULL DEFAULT '0',
+  + `bot_nochats` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人能否被添加到群组 0表示可以被添加到群组',
+  + `bot_chat_history` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人能否访问历史消息, 如果本来是false但是后来升为管理员就变true了.',
+  + `bot_info_version` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人版本号',
+  + `bot_inline_placeholder` varchar(32) NOT NULL DEFAULT '' COMMENT '在群组里内连查询时候空白处的提示语, 比如@gambot Choose a game...',
+  + `bot_inline_geo` tinyint(4) NOT NULL DEFAULT '0' COMMENT '内联机器人能否访问您的地理位置, 例如 @foursquare',
+  + `verified` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否为官方认证用户, 名字后有个蓝白对勾',
+  + bot_info 255 机器人信息-简介
+  `banned` -> restricted bigint(20) NOT NULL DEFAULT '0',
+  `banned_reason` -> restriction_reason varchar(128) NOT NULL DEFAULT '',
+  `account_days_ttl` int(11) NOT NULL DEFAULT '180',
+  `photos` varchar(1024) NOT NULL DEFAULT '',
+  + photo_id 
+  `invite_uid` int(11) NOT NULL DEFAULT '0',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0',
+  - `deleted_reason` varchar(500) NOT NULL DEFAULT '',
+  `created_at` -> add_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  - `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  - `banned_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  - `deleted_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `phone` (`phone`),
+  KEY `username` (`username`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=333006 DEFAULT CHARSET=utf8;
+
+-- 用户表
+CREATE TABLE `user` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID字段: 考虑到有很多官方特殊ID, 需要自己维护redis计数器, 不依赖主键. 生成的时候跳过系统用户[5] (唯一索引)',
+  `access_hash` varchar(20) NOT NULL DEFAULT '' COMMENT '用来校验',
+  `username` varchar(32) NOT NULL DEFAULT '' COMMENT '用户名 (唯一索引) a-z, 0-9和下划线, 5<=长度<=32',
+  `first_name` varchar(100) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+  `last_name` varchar(100) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+  `country_code` varchar(3) NOT NULL, 
+  `phone` varchar(20) NOT NULL DEFAULT '' COMMENT '手机号 (唯一索引)',
+  `photo_id` int(11) NOT NULL DEFAULT '' COMMENT '用户头像, json([photo_id, ...])',
+  `account_days_ttl` int(11) NOT NULL DEFAULT '0' COMMENT '多少天后自动删除账号',
+  `restricted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否受限; 抱歉，您无法执行此操作。',
+  `restriction_reason` varchar(100) NOT NULL DEFAULT '' COMMENT '受限原因',
+  `bot` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是不是机器人',
+  `bot_nochats` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人能否被添加到群组 0表示可以被添加到群组',
+  `bot_chat_history` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人能否访问历史消息, 如果本来是false但是后来升为管理员就变true了.',
+  `bot_info_version` tinyint(4) NOT NULL DEFAULT '0' COMMENT '机器人版本号',
+  `bot_inline_placeholder` varchar(32) NOT NULL DEFAULT '' COMMENT '在群组里内连查询时候空白处的提示语, 比如@gambot Choose a game...',
+  `bot_inline_geo` tinyint(4) NOT NULL DEFAULT '0' COMMENT '内联机器人能否访问您的地理位置, 例如 @foursquare',
+  `verified` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否为官方认证用户, 名字后有个蓝白对勾',
+  `deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '删除的用户',
+  `add_time` int(11) NOT NULL DEFAULT '0' COMMENT '注册时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  UNIQUE KEY `phone` (`phone`) USING BTREE,
+  KEY `username` (`username`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 用户头像表
+create table user_photos
+    user_id
+    photo_id
+    add_time
+
+-- 机器人命令表
+create table bot_command
+    user_id
+    command 命令代码
+    description 命令介绍

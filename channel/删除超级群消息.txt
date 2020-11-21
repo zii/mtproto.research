@@ -1,0 +1,109 @@
+删除超级群消息
+
+每个人都能删除自己发的消息, 管理员可以删除其他人的消息;
+
+A删除消息
+2018-11-07 09:12:38.760 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_channels_deleteMessages#84c1fd4e {
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: -8624078791493737884 LONG,
+            channel_id: 1449358075,
+        },
+        id: [
+            91
+        ],
+    }
+2018-11-07 09:12:39.696 D/tmessages: <<<<<<<< 收到响应(TL_channels_deleteMessages):
+    TLRPC.TL_messages_affectedMessages#84d19185 {
+        pts: 137,
+        pts_count: 1,
+    }
+
+其他人收到
+11-07 09:10:43.814 D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [],
+        date: 1541553044,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [
+            TLRPC.TL_updateDeleteChannelMessages#c37521c9 {
+                action: null,
+                available_min_id: 0,
+                blocked: false,
+                channel_id: 1449358075,
+                chat: null,
+                chat_id: 0,
+                chat_instance: 0 LONG,
+                data: null,
+                date: 0,
+                dc_options: [],
+                difference: null,
+                draft: null,
+                enabled: false,
+                entities: [],
+                first_name: null,
+                flags: 0,
+                foreign_link: null,
+                game_short_name: null,
+                geo: null,
+                inbox_date: 0,
+                inviter_id: 0,
+                is_admin: false,
+                key: null,
+                last_name: null,
+                masks: false,
+                max_date: 0,
+                max_id: 0,
+                media: null,
+                messages: [
+                    99
+                ],
+                my_link: null,
+                notify_settings: null,
+                offset: null,
+                participant: null,
+                participants: null,
+                phone: null,
+                phone_call: null,
+                photo: null,
+                pinned: false,
+                popup: false,
+                previous: false,
+                pts: 136,
+                pts_count: 1,
+                qts: 0,
+                query: null,
+                query_id: 0 LONG,
+                random_id: 0 LONG,
+                rules: [],
+                status: null,
+                stickerset: null,
+                type: null,
+                user_id: 0,
+                username: null,
+                version: 0,
+                views: 0,
+                webpage: null,
+            }
+        ],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }

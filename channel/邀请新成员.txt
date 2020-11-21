@@ -1,0 +1,16 @@
+邀请新成员
+
+10-30 14:06:16.626 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_channels_inviteToChannel#199f3a6c {
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: -9164138208409878071 LONG,
+            channel_id: 1490499770,
+        },
+        users: [
+            TLRPC.TL_inputUser#d8292816 {
+                access_hash: -7862659746901630636 LONG,
+                user_id: 456246609,
+            }
+        ],
+    }
+10-30 14:06:17.068 E/tmessages: <<<<<<<< 收到错误(TL_channels_inviteToChannel): 400 CHAT_ADMIN_REQUIRED

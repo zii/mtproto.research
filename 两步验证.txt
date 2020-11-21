@@ -1,0 +1,337 @@
+两步验证
+登录时的附加密码, 两步密码是为了禁止同一手机号在其他不信任的设备上登录.
+
+password_hash = sha256(new_salt + 明文 + new_salt)
+new_salt前8字节由服务器掌管, 后8字节由客户端掌管
+前8个字节好像对每个人是固定的, 算法可以定为 fnv.New64().Sum([]byte("用户ID"))
+
+two_step_verification表:
+    user_id
+    password_hash char(32) current_password_hash
+    salt char(16) current_salt
+    hint 提示信息
+    email 邮箱
+    has_recovery 1表示激活了邮箱
+    recovery_code 恢复码, 忘记密码, 用来撤销密码
+    fail_time 上次输入密码错误的时间
+    fail_times 连续尝试密码失败次数, 超过5次就报 420 FLOOD_WAIT_1126
+
+获取两步验证码, 一直刷新获取最新状态
+服务器有必要控制发送频率, 请求间隔小于3秒的返回peer_flood
+2018-10-20 12:56:18.095 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 12:56:18.507 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_noPassword#96dabc18 {
+        current_salt: null,
+        email_unconfirmed_pattern: "", // 字段不为空表示等待邮件
+        has_recovery: false, // true表示设置了邮箱
+        hint: null,
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+设置两步密码(不填邮箱), 服务器直接保存password_hash
+2018-10-20 12:58:29.918 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updatePasswordSettings#fa7c4b86 {
+        current_password_hash: ,
+        new_settings: TLRPC.TL_account_passwordInputSettings#86916deb {
+            email: null,
+            flags: 1,
+            hint: "", // 密码提示(可以设很长)
+            new_password_hash: -56, -47, 91, 80, -23, 11, 71, 2, 120, 32, -110, -5, -10, 16, -99, -99, -109, 8, -100, 50, -89, 63, 97, 112, 102, 13, -3, -5, -99, -115, 48, -22,
+            new_salt: 32, 118, -6, -49, -89, 7, 46, 117, 35, -32, -122, 52, 80, 22, 38, -116,
+        },
+    }
+2018-10-20 12:58:30.350 D/tmessages: <<<<<<<< 收到响应(TL_account_updatePasswordSettings):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+2018-10-20 12:58:31.514 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 12:58:31.920 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_password#7c18141c {
+        current_salt: 32, 118, -6, -49, -89, 7, 46, 117, 35, -32, -122, 52, 80, 22, 38, -116,
+        email_unconfirmed_pattern: "",
+        has_recovery: false,
+        hint: "",
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+设置两步验证码(填邮箱), 服务器不保存password_hash, 而是把password_hash放到激活链接里, 等激活后再保存, 所以这种情况还返回noPassword
+2018-10-20 16:06:38.052 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 16:06:38.573 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_noPassword#96dabc18 {
+        current_salt: null,
+        email_unconfirmed_pattern: "ga***t@gmail.com",
+        has_recovery: false,
+        hint: null,
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+填邮箱后取消密码
+2018-10-20 16:37:45.542 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updatePasswordSettings#fa7c4b86 {
+        current_password_hash: ,
+        new_settings: TLRPC.TL_account_passwordInputSettings#86916deb {
+            email: "",
+            flags: 2,
+            hint: null,
+            new_password_hash: null,
+            new_salt: null,
+        },
+    }
+2018-10-20 16:37:45.973 D/tmessages: <<<<<<<< 收到响应(TL_account_updatePasswordSettings):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+输入验证码(失败返回 400 PASSWORD_HASH_INVALID)
+2018-10-20 13:03:32.289 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPasswordSettings#bc8d11bb {
+        current_password_hash: 57, -23, 99, -40, 100, -25, -90, -3, 71, -71, 54, 64, -63, -96, 56, -85, -67, -1, -12, 87, -103, 74, -78, -105, 60, -109, 32, -87, 46, -123, -78, -90,
+    }
+2018-10-20 13:03:32.745 E/tmessages: <<<<<<<< 收到错误(TL_account_getPasswordSettings): 400 PASSWORD_HASH_INVALID
+
+输入验证码(成功返回)
+2018-10-20 13:04:42.471 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPasswordSettings#bc8d11bb {
+        current_password_hash: -56, -47, 91, 80, -23, 11, 71, 2, 120, 32, -110, -5, -10, 16, -99, -99, -109, 8, -100, 50, -89, 63, 97, 112, 102, 13, -3, -5, -99, -115, 48, -22,
+    }
+尝试次数过多, 请在18分钟后重试
+10-20 14:58:01.639 E/tmessages: <<<<<<<< 收到错误(TL_account_getPasswordSettings): 420 FLOOD_WAIT_1126
+成功
+2018-10-20 13:04:42.930 D/tmessages: <<<<<<<< 收到响应(TL_account_getPasswordSettings):
+    TLRPC.TL_account_passwordSettings#b7b72ab3 {
+        email: "",
+    }
+
+设置密码恢复邮箱(失败返回 400 EMAIL_INVALID)
+2018-10-20 13:22:31.047 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updatePasswordSettings#fa7c4b86 {
+        current_password_hash: -56, -47, 91, 80, -23, 11, 71, 2, 120, 32, -110, -5, -10, 16, -99, -99, -109, 8, -100, 50, -89, 63, 97, 112, 102, 13, -3, -5, -99, -115, 48, -22,
+        new_settings: TLRPC.TL_account_passwordInputSettings#86916deb {
+            email: "gamcat@gmail.com",
+            flags: 2,
+            hint: null,
+            new_password_hash: null,
+            new_salt: null,
+        },
+    }
+邮箱格式不正确
+10-20 13:19:14.539 E/tmessages: <<<<<<<< 收到错误(TL_account_updatePasswordSettings): 400 EMAIL_INVALID
+快完成了!查看您的邮箱. 
+10-20 13:20:16.347 E/tmessages: <<<<<<<< 收到错误(TL_account_updatePasswordSettings): 400 EMAIL_UNCONFIRMED
+邮件待确认
+10-20 13:21:08.445 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 13:22:36.453 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_password#7c18141c {
+        current_salt: 32, 118, -6, -49, -89, 7, 46, 117, 35, -32, -122, 52, 80, 22, 38, -116,
+        email_unconfirmed_pattern: "ga***t@gmail.com", // 加星号的规则是s[2:-1]=*, 如果长度<=3则全部为*
+        has_recovery: false,
+        hint: "",
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+邮箱里收到信件:
+Two-Step Verification in Telegram
+Dear dog,
+
+Please follow this link to confirm your e-mail and activate two-step verification in Telegram Messenger:
+
+https://my.telegram.org/auth/verify-email/NjAyNDE4NzcwLGY5M2MzNmE3MDc1NTg2YjA3NSwxNTQwMDEyOTUyLGdhbWNhdEBnbWFpbC5jb20
+
+Yours,
+The Telegram Team
+
+点击链接, 如果成功页面显示:
+Success! Two-Step verification is now enabled.
+
+如果撤销了密码之后再点链接, 页面显示:
+This link has either expired or is otherwise broken. Please get a new one.
+
+激活码=base64(json{"user_id":用户ID, "new_salt":xxx, "password_hash":xxxx, "hint":xxx})
+
+2018-10-20 13:26:10.870 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 13:26:11.305 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_password#7c18141c {
+        current_salt: 32, 118, -6, -49, -89, 7, 46, 117, 35, -32, -122, 52, 80, 22, 38, -116,
+        email_unconfirmed_pattern: "", // 确认完成, 这里变回空
+        has_recovery: true,
+        hint: "",
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+更改密码
+2018-10-20 13:29:08.140 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updatePasswordSettings#fa7c4b86 {
+        current_password_hash: -56, -47, 91, 80, -23, 11, 71, 2, 120, 32, -110, -5, -10, 16, -99, -99, -109, 8, -100, 50, -89, 63, 97, 112, 102, 13, -3, -5, -99, -115, 48, -22,
+        new_settings: TLRPC.TL_account_passwordInputSettings#86916deb {
+            email: null,
+            flags: 1,
+            hint: "y",
+            new_password_hash: 124, -124, 38, 79, 92, -123, -115, -16, -68, 122, 106, 94, 58, -65, 82, -58, 50, -103, 98, 111, 113, -14, -84, 62, -2, 24, -34, -18, 8, -49, -15, -124,
+            new_salt: 32, 118, -6, -49, -89, 7, 46, 117, -126, 2, 108, -105, 68, 127, 79, -72,
+        },
+    }
+验证password_hash是否正确, 如果另一个设备也想改密码, 那么验证password_hash失败, 返回400 PASSWORD_HASH_INVALID
+这是两步密码的核心所在, 这样做可以迫使另一个设备重新输入新密码才能更改设置.
+2018-10-20 13:29:08.435 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_password#7c18141c {
+        current_salt: 32, 118, -6, -49, -89, 7, 46, 117, 35, -32, -122, 52, 80, 22, 38, -116,
+        email_unconfirmed_pattern: "",
+        has_recovery: true,
+        hint: "",
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+删除密码/撤销密码
+失败: 如果邮箱还没激活, email!=""并且has_recovery=false, 禁止删除密码返回 400 PASSWORD_HASH_INVALID
+2018-10-20 13:31:34.443 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updatePasswordSettings#fa7c4b86 {
+        current_password_hash: 124, -124, 38, 79, 92, -123, -115, -16, -68, 122, 106, 94, 58, -65, 82, -58, 50, -103, 98, 111, 113, -14, -84, 62, -2, 24, -34, -18, 8, -49, -15, -124,
+        new_settings: TLRPC.TL_account_passwordInputSettings#86916deb {
+            email: "",
+            flags: 3,
+            hint: "",
+            new_password_hash: ,
+            new_salt: ,
+        },
+    }
+2018-10-20 13:31:34.446 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_password#7c18141c {
+        current_salt: 32, 118, -6, -49, -89, 7, 46, 117, -126, 2, 108, -105, 68, 127, 79, -72,
+        email_unconfirmed_pattern: "",
+        has_recovery: true,
+        hint: "y",
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+2018-10-20 13:31:35.086 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_getPassword#548a30f5 {
+    }
+2018-10-20 13:31:35.716 D/tmessages: <<<<<<<< 收到响应(TL_account_getPassword):
+    TLRPC.TL_account_noPassword#96dabc18 {
+        current_salt: null,
+        email_unconfirmed_pattern: "",
+        has_recovery: false,
+        hint: null,
+        new_salt: 32, 118, -6, -49, -89, 7, 46, 117,
+    }
+
+点忘记密码, 发送到找回邮箱
+2018-10-20 14:46:07.034 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_auth_requestPasswordRecovery#d897bc66 {
+    }
+2018-10-20 14:46:08.023 D/tmessages: <<<<<<<< 收到响应(TL_auth_requestPasswordRecovery):
+    TLRPC.TL_auth_passwordRecovery#137948a5 {
+        email_pattern: "ga***t@gmail.com",
+    }
+
+收到找回邮件:
+Telegram Password Recovery
+Dear dog,
+
+Use this code to disable your password and access your Telegram account:
+
+577294
+
+Yours,
+The Telegram Team
+
+输入恢复码(失败返回400 CODE_INVALID)
+2018-10-20 14:47:48.000 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_auth_recoverPassword#4ea56e92 {
+        code: "3",
+    }
+成功: 密码已删除
+2018-10-20 14:49:51.750 D/tmessages: <<<<<<<< 收到响应(TL_auth_recoverPassword):
+    TLRPC.TL_auth_authorization#cd050916 {
+        flags: 0,
+        tmp_sessions: 0,
+        user: TLRPC.TL_user#2e13f4c3 {
+            access_hash: -1524916872949489903 LONG,
+            bot: false,
+            bot_chat_history: false,
+            bot_info_version: 0,
+            bot_inline_geo: false,
+            bot_inline_placeholder: null,
+            bot_nochats: false,
+            contact: true,
+            deleted: false,
+            explicit_content: false,
+            first_name: "dog",
+            flags: 7251,
+            id: 602418770,
+            inactive: false,
+            lang_code: null,
+            last_name: null,
+            min: false,
+            mutual_contact: true,
+            phone: "8618530891721",
+            photo: null,
+            restricted: false,
+            restriction_reason: null,
+            self: true,
+            status: TLRPC.TL_userStatusOnline#edb93949 {
+                expires: 1540018412,
+            },
+            username: null,
+            verified: false,
+        },
+    }
+
+下次登录会返回 401 SESSION_PASSWORD_NEEDED, 提示输入密码
+2018-10-22 08:58:01.209 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_auth_signIn#bcd51581 {
+        phone_code: "21281",
+        phone_code_hash: "de5c4005b4a5179995",
+        phone_number: "8618530891721",
+    }
+2018-10-22 08:58:02.221 E/tmessages: <<<<<<<< 收到错误(TL_auth_signIn): 401 SESSION_PASSWORD_NEEDED
+
+输入密码
+2018-10-22 08:59:06.964 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_auth_checkPassword#a63011e {
+        password_hash: 125, 105, 31, -88, -120, 81, 116, 18, -68, 108, -75, -45, 93, 73, -68, 106, 119, -78, -115, -106, -85, 55, 61, -32, -104, -77, 29, 31, 79, 42, -22, 28,
+    }
+失败
+2018-10-22 08:59:07.507 E/tmessages: <<<<<<<< 收到错误(TL_auth_checkPassword): 400 PASSWORD_HASH_INVALID
+成功
+2018-10-22 09:02:09.482 D/tmessages: <<<<<<<< 收到响应(TL_auth_checkPassword):
+    TLRPC.TL_auth_authorization#cd050916 {
+        flags: 0,
+        tmp_sessions: 0,
+        user: TLRPC.TL_user#2e13f4c3 {
+            access_hash: -1524916872949489903 LONG,
+            bot: false,
+            bot_chat_history: false,
+            bot_info_version: 0,
+            bot_inline_geo: false,
+            bot_inline_placeholder: null,
+            bot_nochats: false,
+            contact: true,
+            deleted: false,
+            explicit_content: false,
+            first_name: "dog",
+            flags: 7251,
+            id: 602418770,
+            inactive: false,
+            lang_code: null,
+            last_name: null,
+            min: false,
+            mutual_contact: true,
+            phone: "8618530891721",
+            photo: null,
+            restricted: false,
+            restriction_reason: null,
+            self: true,
+            status: TLRPC.TL_userStatusOffline#8c703f {
+                expires: 1540169873,
+            },
+            username: null,
+            verified: false,
+        },
+    }

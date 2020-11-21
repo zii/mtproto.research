@@ -1,0 +1,167 @@
+用户通知设置
+
+A发出了设置请求
+2018-09-28 09:15:37.289 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updateNotifySettings#84be5b93 {
+        对谁的通知
+        peer: TLRPC.TL_inputNotifyPeer#b8bc5b0c {
+            peer: TLRPC.TL_inputPeerUser#7b8e7de6 {
+                access_hash: 805660652694732981 LONG,
+                channel_id: 0,
+                chat_id: 0,
+                user_id: 559876994,
+            },
+        },
+        settings: TLRPC.TL_inputPeerNotifySettings#38935eb2 {
+            flags: 0,
+            mute_until: 2147483647, # 禁止通知期限
+            show_previews: true, # 通知是否显示消息内容
+            silent: false, # 频道管理员是否开启静默发布
+            sound: "default", # 通知声音
+        },
+    }
+2018-09-28 09:15:37.671 D/tmessages: <<<<<<<< 收到响应(TL_account_updateNotifySettings):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+A的其他设备收到update
+09-28 09:19:31.209 D/tmessages: <<<<<<<<<<<<<<<<<< 收到Updates:
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [
+            TLRPC.TL_chat#d91cdd54 {
+                access_hash: 0 LONG,
+                address: null,
+                admin: false,
+                admin_rights: null,
+                admins_enabled: false,
+                banned_rights: null,
+                broadcast: false,
+                checked_in: false,
+                creator: true,
+                date: 1536652143,
+                deactivated: false,
+                democracy: false,
+                explicit_content: false,
+                flags: 1,
+                geo: null,
+                id: 290021275,
+                kicked: false,
+                left: false,
+                megagroup: false,
+                migrated_to: null,
+                min: false,
+                moderator: false,
+                participants_count: 3,
+                photo: TLRPC.TL_chatPhotoEmpty#37c1011c {
+                    photo_big: null,
+                    photo_small: null,
+                },
+                restricted: false,
+                restriction_reason: null,
+                signatures: false,
+                title: "s1z",
+                until_date: 0,
+                username: null,
+                venue: null,
+                verified: false,
+                version: 13,
+            }
+        ],
+        date: 1538097573,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 413,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [
+            TLRPC.TL_updateNotifySettings#bec268ef {
+                peer: TLRPC.TL_notifyPeer#9fd40bd8 {
+                    peer: TLRPC.TL_peerChat#bad0e5bb {
+                        channel_id: 0,
+                        chat_id: 290021275,
+                        user_id: 0,
+                    },
+                },
+                action: null,
+                available_min_id: 0,
+                blocked: false,
+                channel_id: 0,
+                chat: null,
+                chat_id: 0,
+                chat_instance: 0 LONG,
+                data: null,
+                date: 0,
+                dc_options: [],
+                difference: null,
+                draft: null,
+                enabled: false,
+                entities: [],
+                first_name: null,
+                flags: 0,
+                foreign_link: null,
+                game_short_name: null,
+                geo: null,
+                inbox_date: 0,
+                inviter_id: 0,
+                is_admin: false,
+                key: null,
+                last_name: null,
+                masks: false,
+                max_date: 0,
+                max_id: 0,
+                media: null,
+                messages: [],
+                my_link: null,
+                notify_settings: TLRPC.TL_peerNotifySettings#9acda4c0 {
+                    show_previews: true,
+                    events_mask: 0,
+                    flags: 1,
+                    mute_until: 1538101174,
+                    silent: false,
+                    sound: "default",
+                },
+                offset: null,
+                participant: null,
+                participants: null,
+                phone: null,
+                phone_call: null,
+                photo: null,
+                pinned: false,
+                popup: false,
+                previous: false,
+                pts: 0,
+                pts_count: 0,
+                qts: 0,
+                query: null,
+                query_id: 0 LONG,
+                random_id: 0 LONG,
+                rules: [],
+                status: null,
+                stickerset: null,
+                type: null,
+                user_id: 0,
+                username: null,
+                version: 0,
+                views: 0,
+                webpage: null,
+            }
+        ],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }
+
+getfulluser, getfullchat, getdialogs, 这些消息里的notify_settings字段都要获取最新的设置.

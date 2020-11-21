@@ -1,0 +1,40 @@
+登录
+
+09-19 16:26:13.573 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_auth_sendCode#86aef0ec {
+        allow_flashcall: true,
+        api_hash: "a7bc9b35237397e84e7f5d94ce53dec8",
+        api_id: 236477,
+        current_number: true,
+        flags: 0,
+        phone_number: "8618530891721",
+    }
+
+如果服务端判断手机号应该属于另一个数据中心, 就返回迁移指令. 可以看到开始是dc2(荷兰), 迁移到dc5(新加坡);
+dc1: 英属维尔京群岛
+dc2: 荷兰阿姆斯特丹
+dc3: 英属维尔京群岛
+dc4: 荷兰阿姆斯特丹 media_only
+dc5: 新加坡
+
+美国手机号迁到dc1
+默认连dc2
+西班牙手机号连到dc4
+亚洲手机号连到dc5
+connection(0xdb4c9000, dc2, type 1) received rpc_result with 12TL_rpc_error
+09-19 16:26:14.530 E/tgnet: connection(0xdb4c9000, dc2, type 1) rpc error 303: PHONE_MIGRATE_5
+09-19 16:26:14.530 D/tgnet: dc5 handshake: begin
+
+09-19 18:05:49.723 D/tgnet: getConfig add 2001:0b28:f23d:f001:0000:0000:0000:000a:443 to dc1, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 149.154.167.51:443 to dc2, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 2001:067c:04e8:f002:0000:0000:0000:000a:443 to dc2, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 149.154.175.100:443 to dc3, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 2001:0b28:f23d:f003:0000:0000:0000:000a:443 to dc3, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 149.154.167.92:443 to dc4, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 149.154.167.91:443 to dc4, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000a:443 to dc4, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 149.154.166.120:443 to dc4, cdn:0 media_only:1 tcpo_only:0
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000b:443 to dc4, cdn:0 media_only:1 tcpo_only:0
+    getConfig add 2001:0b28:f23f:f005:0000:0000:0000:000a:443 to dc5, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 91.108.56.140:443 to dc5, cdn:0 media_only:0 tcpo_only:0
+    getConfig add 91.108.56.191:443 to dc5, cdn:0 media_only:0 tcpo_only:0

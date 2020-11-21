@@ -1,0 +1,632 @@
+消息注解
+
+错误代码可以参考安卓AlertsCreator.java processError函数.
+
+user#2e13f4c3 flags:# self:flags.10?true contact:flags.11?true mutual_contact:flags.12?true deleted:flags.13?true bot:flags.14?true bot_chat_history:flags.15?true bot_nochats:flags.16?true verified:flags.17?true restricted:flags.18?true min:flags.20?true bot_inline_geo:flags.21?true id:int access_hash:flags.0?long first_name:flags.1?string last_name:flags.2?string username:flags.3?string phone:flags.4?string photo:flags.5?UserProfilePhoto status:flags.6?UserStatus bot_info_version:flags.14?int restriction_reason:flags.18?string bot_inline_placeholder:flags.19?string lang_code:flags.22?string = User;
+    用户基本信息
+    self: 是不是我
+    contact: 是不是我的联系人
+    mutual_contact: 是不是双向联系人
+    deleted: 用户已删除
+    bot: 是不是机器人
+    bot_chat_history: bool 机器人在群组中的成员状态, 默认为不能访问历史消息, 如果把机器人设为管理员就变成"能够访问消息"
+    bot_nochats: bool 不能将机器人添加到群组
+    bot_info_version: int 机器人的版本号, 目前客户端没用到
+    bot_inline_geo: bool  内连机器人能否访问地理位置
+    bot_inline_placeholder: "Choose a game...",  内连@提示语
+    verified: 是否官方认证账号, 名字后面带个章
+    restricted: 是否被系统限制, 很多功能都会返回error
+    restriction_reason: 限制原因, 比如传播色情信息
+    min: false,  服务器本次只提供最少量的用户信息(只提供username和photo), 感觉没啥用
+    access_hash: 用户校验码
+    first_name: 主名字
+    last_name: 副名字
+    username: 唯一代号, 用于分享和搜索
+    phone: 手机号
+    photo: 头像
+    status: 在线状态
+    lang_code: 语言代码
+
+userFull#f220f3f flags:# blocked:flags.0?true phone_calls_available:flags.4?true phone_calls_private:flags.5?true user:User about:flags.1?string link:contacts.Link profile_photo:flags.2?Photo notify_settings:PeerNotifySettings bot_info:flags.3?BotInfo common_chats_count:int = UserFull;
+    用户完整信息
+    blocked: 是否被我屏蔽
+    phone_calls_available: false用来隐藏电话按钮, 系统账号和机器人都是false, 真实用户都是true
+    phone_calls_private: 对方隐私设置关闭为true
+    user: user#2e13f4c3
+    about: 个人简介(70个字, 中文也算1个字)
+    link: 联系人
+    profile_photo: 头像
+    notify_settings: 我对他的通知设置
+    bot_info: 机器人信息
+    common_chats_count: 我和他共同加入的群组数量
+
+message#44f9b43d flags:# out:flags.1?true mentioned:flags.4?true media_unread:flags.5?true silent:flags.13?true post:flags.14?true id:int from_id:flags.8?int to_id:Peer fwd_from:flags.2?MessageFwdHeader via_bot_id:flags.11?int reply_to_msg_id:flags.3?int date:int message:string media:flags.9?MessageMedia reply_markup:flags.6?ReplyMarkup entities:flags.7?Vector<MessageEntity> views:flags.10?int edit_date:flags.15?int post_author:flags.16?string grouped_id:flags.17?long = Message;
+    最重要的结构: 消息
+    out: true代表是我发出的 false代表我收到的
+    mentioned: 是否@我
+    media_unread: 视频语音消息是否被点开播放
+    silent: 频道管理员可以发布静默广播, updateNotifySettings:settings.silent=true, 此后成员收到消息时带silent=true, 就不会收到通知提示了.
+    post: 频道消息为true
+    post_author: 如果管理员打开启了消息署名(toggleSignatures), 管理员发布消息时会附上他们的名字
+    views: 广播消息带阅读次数, 任何人readHistory成功就+1
+    from_id: 发送者id
+    to_id: 收件方
+    fwd_from: TLRPC.TL_messageFwdHeader#559ebe6d {
+        转发来源
+        channel_id: 1280264195,  (如果来自频道)频道id
+        channel_post: 4,  (如果来自频道)频道消息id
+        post_author: null,  (如果来自频道)频道管理员消息签名
+        date: 1537575144,
+        flags: 6,
+        from_id: 0,  (除了频道)消息发送者id
+        saved_from_msg_id: 0, (发给自己)把消息转发给自己时用到这两个消息, 效果是消息右边出现一个箭头, 点击可以跳到原消息.
+        saved_from_peer: null,
+    }
+    via_bot_id: 使用内联机器人发送的消息, 会带上机器人的名字
+    reply_to_msg_id: 回复对话中的某条消息
+    reply_markup: 
+    date: 发送时间
+    message: 消息文本
+    media: 消息附件
+    reply_markup: TLRPC.TL_replyInlineMarkup#48a30254 {
+        机器人发消息的时候可以带按钮; 在转发机器人消息的时候应去掉reply_markup.
+        flags: 0,
+        resize: false,
+        rows: [
+            TLRPC.TL_keyboardButtonRow#77608b83 {
+                buttons: [
+                    TLRPC.TL_keyboardButtonCallback#683a5e46 {
+                        data: 123, 34, 99, 34, 58, 34, 47, 114, 97, 110, 100, 111, 109, 34, 125,
+                        flags: 0,
+                        query: null,
+                        same_peer: false,
+                        text: "Get random music",
+                        url: null,
+                    }
+                ],
+            ...
+        }]
+    }
+    entities: 消息文字打标签, 比如加粗/斜体/超链接/@/机器人命令/邮箱/代码
+    grouped_id: 一次发多个图片用的
+
+messageService#9e19a1f6 flags:# out:flags.1?true mentioned:flags.4?true media_unread:flags.5?true silent:flags.13?true post:flags.14?true id:int from_id:flags.8?int to_id:Peer reply_to_msg_id:flags.3?int date:int action:MessageAction = Message;
+    主要是事件型的消息, MessageAction有: 创建群组, 编辑标题 删除图片 删除成员 添加成员 群升级 置顶消息 清除历史消息 游戏得分 来电话 
+
+    messageActionScreenshotTaken#4792929b = MessageAction;
+    这个是加密对话截图消息"您截了一张图", 可以当作操作记录
+
+dialog#e4def5db flags:# pinned:flags.2?true peer:Peer top_message:int read_inbox_max_id:int read_outbox_max_id:int unread_count:int unread_mentions_count:int notify_settings:PeerNotifySettings pts:flags.0?int draft:flags.1?DraftMessage = Dialog;
+    对话结构
+    pinned: 是否在对话列表置顶
+    peer: 对方
+    top_message: 最新消息id
+    read_inbox_max_id: 已读的收到的最大信件id
+    read_outbox_max_id: 已读的发出的最大信件id
+    unread_count: 未读消息数
+    unread_mentions_count: 未读的@我的消息数
+    notify_settings: 我对对方的通知设置
+    pts: 我当前的pts
+    draft: 草稿
+
+messages.sendMessage#fa88427a flags:# no_webpage:flags.1?true silent:flags.5?true background:flags.6?true clear_draft:flags.7?true peer:InputPeer reply_to_msg_id:flags.0?int message:string random_id:long reply_markup:flags.2?ReplyMarkup entities:flags.3?Vector<MessageEntity> = Updates;
+    发消息
+    给不认识的人发消息会出现400 PEER_FLOOD
+    no_webpage: 是否搜索链接, true自动加WebPage
+    silent: true静默消息
+    background: 安卓没用到, false
+    clear_draft: 发完消息清除草稿
+    reply_to_msg_id: 回复消息id
+    message: 消息文本
+    random_id: 发送方客户端设备生成的临时消息id, 配合updateMessageID, 发完告诉发送方正式message_id, 将这条临时消息转正.
+    reply_markup: 机器人消息可带按钮
+    entities: 消息文字打标签, 比如加粗/斜体/超链接/@/机器人命令/邮箱/代码
+
+读历史消息
+max_id
+TLRPC.TL_messages_readHistory#e306d3a {
+    max_id: -2147483648,
+    peer: TLRPC.TL_inputPeerUser#7b8e7de6 {
+        access_hash: 1046185709985206272 LONG,
+        channel_id: 0,
+        chat_id: 0,
+        user_id: 2,
+    },
+}
+
+messages.getHistory#dcbb8260 peer:InputPeer offset_id:int offset_date:int add_offset:int limit:int max_id:int min_id:int hash:int = messages.Messages;
+    请求获取对话历史消息.
+    有的时候服务器知道客户端刚加载过, 就只返回数量不返回数据, 比如:
+        TLRPC.TL_messages_messagesSlice#b446ae3 {
+            chats: [],
+            count: 2,
+            flags: 0,
+            messages: [],
+            ...
+        }
+    以offset_id和offset_date为分界点;
+    先前取 id>=offset_id 的 -add_offset 条消息;
+    然后再向后取 id<offset_id 的 limit+add_offset 条消息.
+    *id指的是我的信箱id, 或channel消息id
+
+    例1: 从对话列表点进去
+    取id<110的50条消息. 为什么不包含110? 因为110在getDialogs的时候已经被取过了, 包含在top_message里.
+    TLidRPC.TL_messages_getHistory#afa92846 {
+        add_offset: 0,
+        limit: 50,
+        max_id: 0,
+        min_id: 0,
+        offset_date: 0,
+        offset_id: 110,
+        peer: TLRPC.TL_inputPeerUser#7b8e7de6 {
+            access_hash: 805660652694732981 LONG,
+            channel_id: 0,
+            chat_id: 0,
+            user_id: 559876994,
+        },
+    }
+
+    例2: 点击邀请链接加入channel
+    此时offset_id和offset_date都是0, 就是读取最新20条消息.
+    TLRPC.TL_messages_getHistory#afa92846 {
+        add_offset: 0,
+        limit: 20,
+        max_id: 0,
+        min_id: 0,
+        offset_date: 0,
+        offset_id: 0,
+        peer: TLRPC.TL_inputPeerChannel#20adaef8 {
+            access_hash: 1778458879737824177 LONG,
+            channel_id: 1179702749,
+            chat_id: 0,
+            user_id: 0,
+        },
+    }
+
+    例3: 群搜索, 按日期
+    取id>=1537200000的25条消息 and id<1537200000的5条消息.
+    TLRPC.TL_messages_getHistory#afa92846 {
+        从9月18日零点划分, 取25条18号的消息, 再取5条17号的消息.
+        add_offset: -25,
+        limit: 30,
+        max_id: 0,
+        min_id: 0,
+        offset_date: 1537200000, 9月18日零点
+        offset_id: 0,
+        peer: TLRPC.TL_inputPeerChannel#20adaef8 {
+            access_hash: -874196128960160990 LONG,
+            channel_id: 1245874491,
+            chat_id: 0,
+            user_id: 0,
+        },
+    }
+
+messages.hideReportSpam#a8f1709b peer:InputPeer = Bool;
+    和非联系人聊天或群组会出现举报垃圾信息的提示.
+    手动关闭垃圾信息提醒, 下次不再提示, getPeerSettings返回false.
+
+messages.receivedQueue#55a5bb66 max_qts:int = Vector<long>;
+    加密对话, 通知服务器这边消息已经收到, 可以删掉了
+
+messages.readMessageContents#36a73f77 id:Vector<int> = messages.AffectedMessages;
+    发语音的时候message.media_unread=true, 点开语音就会发这个消息. 用来标记语音已被收听.
+
+messages.getWebPagePreview#25223e24 message:string = MessageMedia;
+    聊天框输入网址的过程中触发的, 预览网页webpage.
+
+messages.exportChatInvite#7d885289 chat_id:int = ExportedChatInvite;
+    普通群-添加成员-通过链接邀请他人加入群组, 就会触发这个消息, 返回邀请链接. 点撤销链接还会调用这个消息, 然后生成新链接.
+
+inputPeerNotifySettings#38935eb2 flags:# show_previews:flags.0?true silent:flags.1?true mute_until:int sound:string = InputPeerNotifySettings;
+    对方通知设置
+    show_previews: 安卓通知栏是否显示消息内容
+    silent: 频道管理员是否开启了静默广播
+    mute_until: 静默期限
+    sound: 声音 default
+
+auth.resetAuthorizations#9fab0d1a = Bool;
+    强制把其他设备踢下线, 注意:如果刚连上新设备不久会失败.
+
+account.resetAuthorization#df77f3bc hash:long = Bool;
+    重制单个设备
+
+auth.exportAuthorization#e5bfffcd dc_id:int = auth.ExportedAuthorization;
+    准备迁移到另一个DC, 先把账号信息导出来, bytes. 返回之后到新DC上执行importAuthorization, 把bytes传过去, 获取新User.
+
+auth.importAuthorization#e3ef9613 id:int bytes:bytes = auth.Authorization;
+    id: 旧user_id
+
+auth.bindTempAuthKey#cdd42a05 perm_auth_key_id:long nonce:long expires_at:int encrypted_message:bytes = Bool;
+    加密对话里客户端之间用的, 跟服务器没关系
+
+auth.importBotAuthorization#67a3ff2c flags:int api_id:int api_hash:string bot_auth_token:string = auth.Authorization;
+    似乎是机器人客户端用的
+
+account.getPassword#548a30f5 = account.Password;
+    设置: 获取两步验证码, 一直刷新等邮件激活
+
+account.updatePasswordSettings#fa7c4b86 current_password_hash:bytes new_settings:account.PasswordInputSettings = Bool;
+    设置: 更新两步验证码邮箱/删除密码
+
+auth.checkPassword#a63011e password_hash:bytes = auth.Authorization;
+    登录: 检查两步验证码
+
+auth.requestPasswordRecovery#d897bc66 = auth.PasswordRecovery;
+    登录: 请求忘记密码
+
+auth.recoverPassword#4ea56e92 code:string = auth.Authorization;
+    登录: 填写验证码禁用两步验证码, 完成登录
+
+messages.getMessageEditData#fda68d36 peer:InputPeer id:int = messages.MessageEditData;
+    群里编辑消息, id=消息ID, 返回MessageEditData.caption=图片时为true, 文字false, 表示编辑的是不是文件标题. 客户端没用到.
+
+auth.sentCodeTypeApp#3dbb5986 length:int = auth.SentCodeType;
+    提示用户验证码已经发到你的另一个应用设备
+auth.sentCodeTypeSms#c000bba2 length:int = auth.SentCodeType;
+    提示用户验证码已经发到你的短信
+auth.sentCodeTypeCall#5353e5a7 length:int = auth.SentCodeType;
+    提示用户将会在n秒后发送电话语音验证码
+auth.sentCodeTypeFlashCall#ab03c6d9 pattern:string = auth.SentCodeType;
+
+输入验证码登录
+TLRPC.TL_auth_signIn#bcd51581 {
+    phone_code: "68081",
+    phone_code_hash: "d195079077d9bb73b3",
+    phone_number: "8615981867201",
+}
+如果设置了两步验证码会返回401 SESSION_PASSWORD_NEEDED
+09-07 08:51:50.141 E/tmessages: <<<<<<<< 收到错误(TL_auth_signIn): 401 SESSION_PASSWORD_NEEDED
+否则返回auth.Authorization;
+
+help.getAppChangelog#9010ef6f prev_app_version:string = Updates;
+    客户端比较当前userConfig.lastUpdateVersion和应用实际版本号BuildVars.BUILD_VERSION_STRING, 如果不一样, 就请求获得这两个版本之间的改动(ChangeLog).
+    如果服务器认为和当前版本并无改动就返回空的Updates; 否则返回Updates+updateConfig. 客户端看到updateConfig后再主动调用help.getConfig获取新配置.
+
+示例:
+09-07 09:46:38.688 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_help_getAppChangelog#9010ef6f {
+        prev_app_version: "1.0.4",
+    }
+09-07 09:46:39.061 D/tmessages: <<<<<<<< 收到响应(TL_help_getAppChangelog):
+    TLRPC.TL_updates#74ae4240 {
+        chat_id: 0,
+        chats: [],
+        date: 1536284804,
+        entities: [],
+        flags: 0,
+        from_id: 0,
+        fwd_from: null,
+        id: 0,
+        media: null,
+        media_unread: false,
+        mentioned: false,
+        message: null,
+        out: false,
+        pts: 0,
+        pts_count: 0,
+        reply_to_msg_id: 0,
+        seq: 0,
+        seq_start: 0,
+        silent: false,
+        update: null,
+        updates: [],
+        user_id: 0,
+        users: [],
+        via_bot_id: 0,
+    }
+
+help.getAppUpdate#ae2de196 = help.AppUpdate;
+    安卓没用; 苹果用的也不是这个, 是 help.getAppUpdate#c812ac7e device_model system_version app_version lang_code
+
+help.saveAppLog#6f02f748 events:Vector<InputAppEvent> = Bool;
+    安卓苹果都没用
+
+help.getInviteText#4d392343 = help.InviteText;
+    获取邀请地址, 就是邀请朋友加入telegram的短信, 里面的下载链接.
+    https://telegram.org/dl
+
+help.getSupport#9cdf08cd = help.Support;
+    设置-帮助-想我们提问, 其实就是获取一个志愿者User, 这个志愿者不是bot属性但自动回复.
+
+help.getTermsOfService#350170f3 = help.TermsOfService;
+    安卓没调; 苹果登录界面的条款按钮.
+
+help.setBotUpdatesStatus#ec22cfcd pending_updates_count:int message:string = Bool;
+    没用
+
+channels.exportMessageLink#c846d22d channel:InputChannel id:int = ExportedMessageLink;
+    公开频道的管理员, 点击一条消息, 点菜单"复制链接", 会复导出一个群消息链接.
+    TLRPC.TL_channels_exportMessageLink#c846d22d {
+        channel: TLRPC.TL_inputChannel#afeb712e {
+            access_hash: 5300103703341438347 LONG,
+            channel_id: 1179702749,
+        },
+        id: 69,
+    }
+    TLRPC.TL_exportedMessageLink#1f486803 {
+        link: "https://t.me/thefree1/69",
+    }
+
+channels.toggleInvites#49609307 channel:InputChannel enabled:Bool = Updates;
+    大群-管理员-谁可以箱群组邀请新成员? 所有成员/仅管理员
+
+更新静默广播设置, silent=true, 表示频道管理员发不带声音的通知
+https://telegram.org/blog/channels-2-0#silent-messages
+09-07 16:43:52.655 D/tmessages: >>>>>>>> 发送请求:
+    TLRPC.TL_account_updateNotifySettings#84be5b93 {
+        peer: TLRPC.TL_inputNotifyPeer#b8bc5b0c {
+            peer: TLRPC.TL_inputPeerChannel#20adaef8 {
+                access_hash: -4075846995290790416 LONG,
+                channel_id: 1198265961,
+                chat_id: 0,
+                user_id: 0,
+            },
+        },
+        settings: TLRPC.TL_inputPeerNotifySettings#38935eb2 {
+            flags: 0,
+            mute_until: 0,
+            show_previews: true,
+            silent: true,
+            sound: "default",
+        },
+    }
+09-07 16:43:53.013 D/tmessages: <<<<<<<< 收到响应(TL_account_updateNotifySettings):
+    TLRPC.TL_boolTrue#997275b5 {
+    }
+
+inputPhoneContact#f392b7f4 client_id:long phone:string first_name:string last_name:string = InputContact;
+    导入联系人, client_id就是客户端自己从1开始编号的一个数, 不知道干啥的
+
+updateContactRegistered#2575bbb9 user_id:int date:int = Update;
+    手机联系人注册成功, 导入联系人并创建会话发出提示消息
+
+updateContactLink#9d2e67c5 user_id:int my_link:ContactLink foreign_link:ContactLink = Update;
+    添加删除联系人
+
+updateReadMessagesContents#68c13933 messages:Vector<int> pts:int pts_count:int = Update;
+    收到音频视频消息, 但是还没点开看
+
+updateChannelMessageViews#98a12b4b channel_id:int id:int views:int = Update;
+    频道 更新消息阅读数
+
+updatePtsChanged#3354678f = Update;
+    没用
+
+updateConfig#a229dd06 = Update;
+    通知客户端请求信配置
+
+updateBotWebhookJSON#8317c0c3 data:DataJSON = Update;
+updateBotWebhookJSONQuery#9b9240a6 query_id:long data:DataJSON timeout:int = Update;
+updateBotShippingQuery#e0cdc940 query_id:long user_id:int payload:bytes shipping_address:PostAddress = Update;
+updateBotPrecheckoutQuery#5d2f3aa9 flags:# query_id:long user_id:int payload:bytes info:flags.0?PaymentRequestedInfo shipping_option_id:flags.1?string currency:string total_amount:long = Update;
+    这几个好像是机器人客户端用到的
+
+channels.createChannel#f4893d7f flags:# broadcast:flags.0?true megagroup:flags.1?true title:string about:string = Updates;
+    创建频道
+
+messageMediaUnsupported#9f84f49e = MessageMedia;
+    发文件: 您当前的 Wink 版本无法查看这条消息。
+
+updateContactsReset#7084a7be = Update;
+    强制重新导入联系人.
+
+updateChannelAvailableMessages#70db6837 channel_id:int available_min_id:int = Update;
+    服务器通知客户端删除老消息
+
+updateStatus和updateUserTyping:
+    都是要符合对方在线+隐私设置的条件才能发送.
+
+contacts.getTopPeers#d4982db5 flags:# correspondents:flags.0?true bots_pm:flags.1?true bots_inline:flags.2?true phone_calls:flags.3?true groups:flags.10?true channels:flags.15?true offset:int limit:int hash:int = contacts.TopPeers;
+    获取搜索推荐, 建议列表就是全局搜索框下面的一排推荐用户. 评分越高越靠前, 打分规则: rating+=e^(每次发消息的时间-上次gettoppeer时间)/UserConfig.ratingEDecay
+
+contacts.resetTopPeerRating#1ae373ac category:TopPeerCategory peer:InputPeer = Bool;
+    确认从建议列表中删除 %1$s 吗
+
+contacts.resetSaved#879537f1 = Bool;
+    重置已导入的通讯录, 调试用的消息, 隐藏了
+
+account.updateDeviceLocked#38df3532 period:int = Bool;
+    安卓没用; 苹果设置锁定码的时候通知服务器设备锁了.
+
+account.deleteAccount#418d4e0b reason:string = Bool;
+    两步验证登录时-忘记密码, 会出现充值账号按钮, 就是删除账号和聊天记录. 删除后再注册会生成新user_id.
+
+contacts.importContacts#2c800be5 contacts:Vector<InputContact> = contacts.ImportedContacts;
+    导入联系人, InputContact={client_id, phone, first_name, last_name}
+    client_id是通讯录的序号
+
+contacts.importedContacts#77d01c3b imported:Vector<ImportedContact> popular_invites:Vector<PopularContact> retry_contacts:Vector<long> users:Vector<User> = contacts.ImportedContacts;
+    导入联系人结果, imported: 导入成功的联系人[user_id]; popular_invites:还没注册过的手机号,但是别人通讯里也有他, 这样的人数num, 最终用于生成邀请短信:
+    嗨，我在和另外 %1$d 个联系人使用 Wink 聊天。加入我们吧！
+    retry_contacts:导入失败的[client_id]
+    隐性功能: 其余既没导入也没失败的, 属于正常可邀请的手机号, 客户端会计算这个数量超过2/3弹出提示: Wink 检测到很多未同步的联系人，您想现在将其同步吗？
+
+messages.botCallbackAnswer#36585ea4
+    机器人回调按钮之类的
+    https://core.telegram.org/bots/api#callbackquery
+
+messageRange#ae30253 min_id:int max_id:int = MessageRange;
+    群组消息查询的范围
+
+contacts.resolvedPeer#7f077ad9 peer:Peer chats:Vector<Chat> users:Vector<User> = contacts.ResolvedPeer;
+    @用户名 内联提示, 根据用户名查询对方id
+
+updateServiceNotification#ebe46819 flags:# popup:flags.0?true inbox_date:flags.1?int type:string message:string media:MessageMedia entities:Vector<MessageEntity> = Update;
+    服务器主动推送通知, 如果flag.1>0, 同时用777000的用户发送一条消息.
+
+help.configSimple#d997c3c5 date:int expires:int dc_id:int ip_port_list:Vector<ipPort> = help.ConfigSimple;
+    客户端首次连接固定地址, 如果20秒超时后, 会用两种方式获取新服务器列表.
+    首先尝试: 谷歌DNS的TXT记录 https://dns.google.com/resolve?name=ap.stel.com&type=16
+    不行再换: https://dns-telegram.appspot.com
+    这个stel.com估计是telegram的域名, 接口返回base64的数据, 里面解码后就是configSimple结构.
+    何时触发?握手
+
+help.getConfig#c4f9186b = Config;
+    获取配置
+    config#9c840964 flags:# phonecalls_enabled:flags.1?true default_p2p_contacts:flags.3?true date:int expires:int test_mode:Bool this_dc:int dc_options:Vector<DcOption> chat_size_max:int megagroup_size_max:int forwarded_count_max:int online_update_period_ms:int offline_blur_timeout_ms:int offline_idle_timeout_ms:int online_cloud_timeout_ms:int notify_cloud_delay_ms:int notify_default_delay_ms:int chat_big_size:int push_chat_period_ms:int push_chat_limit:int saved_gifs_limit:int edit_time_limit:int rating_e_decay:int stickers_recent_limit:int stickers_faved_limit:int channels_read_media_period:int tmp_sessions:flags.0?int pinned_dialogs_count_max:int call_receive_timeout_ms:int call_ring_timeout_ms:int call_connect_timeout_ms:int call_packet_timeout_ms:int me_url_prefix:string suggested_lang_code:flags.2?string lang_pack_version:flags.2?int disabled_features:Vector<DisabledFeature> = Config;
+    字段注释
+    phonecalls_enabled  是否允许打电话
+    default_p2p_contacts  是否默认为只有我的联系人才能开启p2p通话, 设置-隐私和安全-端对端连接, 默认为0比较好, 0表示所有人都开启p2p.
+    date: 没用到
+    expire: 下次刷新配置的时间
+    test_mode: 安卓没用到
+    this_dc: 安卓没用到
+    dc_options: 可选服务器
+    chat_size_max: 创建普通群时选择的人数, 超过这个数时就会提示: "您能够在创建群组并升级到超级群组后添加更多的用户"
+    megagroup_size_max: 超级群最大人数
+    forwarded_count_max: 安卓没用到
+    online_update_period_ms: 安卓没用到
+    offline_blur_timeout_ms: 安卓没用到
+    offline_idle_timeout_ms: 安卓没用到
+    online_cloud_timeout_ms: 安卓没用到
+    notify_cloud_delay_ms: 安卓没用到
+    notify_default_delay_ms: 安卓没用到
+    chat_big_size: 群组超过这个人数, 发文件就会弹出警告, 判断群成员超过这个数量就会打开disabledFeatures[bigchat_upload_xxx]提示框.
+    push_chat_period_ms: 安卓没用到
+    push_chat_limit: 安卓没用到
+    saved_gifs_limit: 最多保存几张最近的gif图片
+    edit_time_limit: 消息发送后多少秒内可以编辑消息
+    rating_e_decay: 搜索推荐位的加分系数: 参考contacts.getTopPeers
+    stickers_recent_limit: 最多几条常用sticker
+    stickers_faved_limit: 最多收藏几条sticker
+    channels_read_media_period: 安卓没用到
+    tmp_sessions: 安卓没用到
+    pinned_dialogs_count_max: 最大置顶对话数量
+    call_receive_timeout_ms: 打电话接听超时时间(毫秒)
+    call_ring_timeout_ms: 响铃时间(毫秒)
+    call_connect_timeout_ms: 打电话连接服务器超时(毫秒)
+    call_packet_timeout_ms: udp传输超时(毫秒)
+    me_url_prefix: 官方链接域名, Telegram是"t.me"
+    suggested_lang_code: 安卓没用到
+    lang_pack_version: 安卓没用到
+    disabled_features: [(特征代码, 提示信息)] 特征码列表:
+        bigchat_upload_photo
+        bigchat_upload_document
+        chat_upload_photo
+        chat_upload_document
+        pm_upload_photo
+        pm_upload_document
+        chat_create
+        broadcast_create
+        bigchat_upload_audio
+        chat_upload_audio
+        pm_upload_audio
+        bigchat_message
+        chat_message
+        pm_message
+
+客户端获取dc配置的日志:
+    got response for request 0xc855a000 - 17TL_help_getConfig
+    getConfig add 149.154.175.50:443 to dc1
+    getConfig add 2001:0b28:f23d:f001:0000:0000:0000:000a:443 to dc1
+    getConfig add 149.154.167.51:443 to dc2
+    getConfig add 2001:067c:04e8:f002:0000:0000:0000:000a:443 to dc2
+    getConfig add 149.154.175.100:443 to dc3
+    getConfig add 2001:0b28:f23d:f003:0000:0000:0000:000a:443 to dc3
+    getConfig add 149.154.167.91:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000a:443 to dc4
+    getConfig add 149.154.166.120:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000b:443 to dc4
+    getConfig add 2001:0b28:f23f:f005:0000:0000:0000:000a:443 to dc5
+    getConfig add 91.108.56.110:443 to dc5
+    getConfig add 91.108.56.186:443 to dc5
+
+    got response for request 0xcd3b5110 - 17TL_help_getConfig
+    getConfig add 149.154.175.50:443 to dc1
+    getConfig add 2001:0b28:f23d:f001:0000:0000:0000:000a:443 to dc1
+    getConfig add 149.154.167.51:443 to dc2
+    getConfig add 2001:067c:04e8:f002:0000:0000:0000:000a:443 to dc2
+    getConfig add 149.154.175.100:443 to dc3
+    getConfig add 2001:0b28:f23d:f003:0000:0000:0000:000a:443 to dc3
+    getConfig add 149.154.167.92:443 to dc4
+    getConfig add 149.154.167.91:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000a:443 to dc4
+    getConfig add 149.154.166.120:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000b:443 to dc4
+    getConfig add 2001:0b28:f23f:f005:0000:0000:0000:000a:443 to dc5
+    getConfig add 91.108.56.140:443 to dc5
+    getConfig add 91.108.56.191:443 to dc5
+
+09-19 14:40:03.314 D/tgnet: getConfig add 149.154.175.50:443 to dc1
+    getConfig add 2001:0b28:f23d:f001:0000:0000:0000:000a:443 to dc1
+    getConfig add 149.154.167.51:443 to dc2
+    getConfig add 2001:067c:04e8:f002:0000:0000:0000:000a:443 to dc2
+    getConfig add 149.154.175.100:443 to dc3
+    getConfig add 2001:0b28:f23d:f003:0000:0000:0000:000a:443 to dc3
+    getConfig add 149.154.167.91:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000a:443 to dc4
+    getConfig add 149.154.166.120:443 to dc4
+    getConfig add 2001:067c:04e8:f004:0000:0000:0000:000b:443 to dc4
+    getConfig add 2001:0b28:f23f:f005:0000:0000:0000:000a:443 to dc5
+    getConfig add 91.108.56.110:443 to dc5
+    getConfig add 91.108.56.186:443 to dc5
+09-19 14:40:03.314 D/tgnet: Config(0xe55b2c60, /data/
+
+messages.receivedMessages#5a954c0 max_id:int = Vector<ReceivedNotifyMessage>;
+    安卓没用到
+    苹果端是用来让服务器把, 最近未读消息里的服务性的消息 作为通知来弹出, 比如"%更改了群组的图片".
+
+messages.getDocumentByHash#338e2464 sha256:bytes size:int mime_type:string = Document;
+    根据文档哈希值获取文档, IOS有用
+
+channels.getAdminedPublicChannels#8d8d82d7 = messages.Chats;
+    每个人创建的公共频道数量是有限制的, 如果超过限制, 在创建群或更改共有私有设置时会, 请求这个消息, 
+    获取当前参与管理的公共群群列表, 然后从第一个开始提示"您确定要撤销此链接 **%1$s** 吗 ？\n\n群组 \"**%2$s**\" 将转变成私人群组。"
+    如果点确定就会撤销一个公共群, 然后就可以把新群设为公共了.
+
+fileLocation#53d69076 dc_id:int volume_id:long local_id:int secret:long = FileLocation;
+    参数含义:
+    dc_id  数据中心ID, 1
+    volume_id  磁盘号, 实际: 文件表分表编号
+    local_id  磁盘文件号, 文件表id
+    secret  校验码
+
+messages.getDialogs#191ba9c5 flags:# exclude_pinned:flags.0?true offset_date:int offset_id:int offset_peer:InputPeer limit:int = messages.Dialogs;
+    获取当前对话列表的一页
+    exclude_pinned: true排除置顶对话
+    offset_date: 上一页最后一个对话的时间
+    (offset_peer, offset_id): 最后一条对话的对象peer
+    offset_id: 最后一条对话的top_message_id
+    对话整体是按照offset_date分页的, 其他几个offset字段是为了精确分割, 用sql语句可以很好的理解:
+        select * from user_dialog 
+        where user_id={用户ID} and pinned=0 and update_time<={offset_date} and
+        not (peer_type={offset_peer.type} and peer_id={offset_peer.id} and top_message_id={offset_id})
+        order by update_time desc 
+        limit {limit}
+
+contacts.importContacts#2c800be5 contacts:Vector<InputContact> = contacts.ImportedContacts;
+    客户端请求将自己的手机通讯录导入服务器
+
+help.getRecentMeUrls#3dc0f114 referer:string = help.RecentMeUrls;
+    安卓用到, google play第三方应用转化跟踪
+    referer: 引荐来源, 来源网址
+
+messages.readMentions#f0189d3 peer:InputPeer = messages.AffectedHistory;
+    标读所有未读群@我消息
+    pts_count = number of updateReadMessagesContents#68c13933
+
+messages.affectedHistory#b45c69d1 pts:int pts_count:int offset:int = messages.AffectedHistory;
+    ???
+
+updatesTooLong#e317af7e = Updates;
+    服务器发这个可以出发客户端的getdifference
+
+updateReadHistoryInbox#9961fd5c peer:Peer max_id:int pts:int pts_count:int = Update;
+    当消息接受者发送已读回执, 需要其他设备, 这条消息我读过了
+
+updateReadHistoryOutbox#2f2f21bf peer:Peer max_id:int pts:int pts_count:int = Update;
+    当消息接受者发送已读回执, 需要告诉发送者, 他这条消息被读过了
+
+updateReadChannelInbox#4214f37f channel_id:int max_id:int = Update;
+    在超级群里, 发送者也是接受者, 需要标记自己发的消息
+
+新增webrtc协议:
+-- function
+phone.WebrtcCreateOffer#277add7e peer:InputPhoneCall sdp:string = Bool;
+phone.WebrtcCreateAnswer#xxxxx peer:InputPhoneCall sdp:string = Bool;
+phone.WebrtcAddCandidate#xxxx peer:InputPhoneCall sdp_id:string sdp_index:int sdp:string = Bool;
+
+-- type
+phoneCallWebrtcOffer#xxxx id:long access_hash:long sdp:string = PhoneCall;
+phoneCallWebrtcAnswer#xxxx id:long access_hash:long sdp:string = PhoneCall;
+phoneCallWebrtcCandidate#xxxx id:long access_hash:long sdp_id:string sdp_index:int sdp:string = PhoneCall;
